@@ -1,7 +1,7 @@
 import React from "react";
 
 export default function ModeSelectScreen({ isPortrait, onSelectMode }) {
-  const imgSrc = isPortrait ? "/modeselect.png" : "/modeselectlandscape.png";
+  const imgSrc = isPortrait ? "/modeselectmobile.png" : "/modeselectlandscape.png";
   return (
     <div className="mode-select-bg">
       <img

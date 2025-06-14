@@ -94,18 +94,23 @@ export default function TileGrid({
   return (
     <div
       ref={gridRef}
+
       style={{
-        width: size,
-        height: size,
         display: "grid",
         gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
+        gridTemplateRows: `repeat(${GRID_SIZE}, 1fr)`,
         gap: 2,
         background: "#000",
         borderRadius: 10,
         touchAction: "none",
-        position: "relative",
-        marginTop: 48, // ensures fulfillment slider is above
+        position: "fixed",
+        top: 0,
+        left: 0,
+        marginTop: 0,
         zIndex: 2,
+
+        width: 'min(100vw, 100vh)',
+        height: 'min(100vw, 100vh)',
       }}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
@@ -128,8 +133,7 @@ export default function TileGrid({
           <div
             key={i}
             style={{
-              width: cellSize,
-              height: cellSize,
+
               background: tileColor,
               border: "1px solid #fff6",
               borderRadius: 5,
@@ -149,8 +153,8 @@ export default function TileGrid({
                   position: "absolute",
                   left: 0,
                   top: 0,
-                  width: cellSize,
-                  height: cellSize,
+                  width: "100%",
+                  height: "100%",
                   pointerEvents: "none",
                   opacity: isSelected ? 1 : 0.7,
                   userSelect: "none"

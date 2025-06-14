@@ -2,7 +2,7 @@ import React from "react";
 
 export default function SizeSlider({ sizeOptions, value, setValue, isOffense }) {
   return (
-    <div style={{ width: "100%", margin: "8px 0 4px 0" }}>
+    <div style={{ width: "10%", margin: "8px 0 4px 0" }}>
       <input
         type="range"
         min={0}
