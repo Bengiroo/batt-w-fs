@@ -4,87 +4,108 @@ export default function PanelControls({
   onReset, onFire, onAnchor, balance, bet, setBet, mode, isPortrait
 }) {
   return (
-    <div style={{
-      display: "flex",
-      flexDirection: isPortrait ? "row" : "column",
-      justifyContent: "center",
-      alignItems: "center",
-      gap: isPortrait ? 12 : 24,
-      margin: isPortrait ? "16px 0 0 0" : "0 0 0 24px",
-      width: isPortrait ? "100vw" : 170,
-      minHeight: 120,
-      fontSize: 15
-    }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: isPortrait ? "row" : "column",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: isPortrait ? 12 : 20,
+        marginTop: isPortrait ? 16 : 0,
+        width: isPortrait ? "100vw" : "100%",
+        flexWrap: isPortrait ? "wrap" : "nowrap",
+        fontSize: 15,
+        textAlign: "center",
+      }}
+    >
+      {/* Reset */}
       <button
         style={{
-          background: "#f44336",
+          background: "#ff3860",
           color: "#fff",
-          border: "none",
+          border: "2px solid #ff5e7a",
           borderRadius: 7,
-          padding: "7px 14px",
-          fontWeight: 600,
+          padding: "7px 16px",
+          fontWeight: 700,
           cursor: "pointer",
-          fontSize: 16
+          fontSize: 15,
+          boxShadow: "0 0 8px #ff5e7a88",
         }}
         onClick={onReset}
       >
         Reset
       </button>
+
+      {/* Anchor */}
       <button
         style={{
-          background: "#fff",
-          color: "#222",
-          border: "1px solid #bbb",
+          background: "#003344",
+          color: "#00ffee",
+          border: "2px solid #00ffee",
           borderRadius: 7,
-          padding: "7px 14px",
-          fontWeight: 600,
+          padding: "7px 16px",
+          fontWeight: 700,
           cursor: "pointer",
-          fontSize: 16
+          fontSize: 15,
+          boxShadow: "0 0 8px #00ffee55",
         }}
         onClick={onAnchor}
       >
         Anchor
       </button>
+
+      {/* Fire */}
       <button
         style={{
           background: "#2196f3",
           color: "#fff",
-          border: "none",
+          border: "2px solid #33bbff",
           borderRadius: 7,
-          padding: "7px 14px",
-          fontWeight: 600,
+          padding: "7px 16px",
+          fontWeight: 700,
           cursor: "pointer",
-          fontSize: 16
+          fontSize: 15,
+          boxShadow: "0 0 8px #33bbff88",
         }}
         onClick={onFire}
       >
         Fire
       </button>
+
+      {/* Balance */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <span style={{ fontWeight: 700, fontSize: 16 }}>Balance</span>
-        <span style={{
-          fontWeight: 700,
-          fontSize: 18,
-          color: mode === "offense" ? "#f44336" : "#2196f3"
-        }}>
+        <span style={{ fontWeight: 700, fontSize: 14, color: "#00ffff" }}>Balance</span>
+        <span
+          style={{
+            fontWeight: 800,
+            fontSize: 18,
+            color: mode === "offense" ? "#ff3860" : "#33bbff",
+            textShadow: "0 0 5px currentColor",
+          }}
+        >
           {balance} 💰
         </span>
       </div>
+
+      {/* Bet */}
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <span style={{ fontWeight: 600 }}>Bet</span>
+        <span style={{ fontWeight: 600, fontSize: 14 }}>Bet</span>
         <input
           type="number"
           value={bet}
-          onChange={e => setBet(Number(e.target.value))}
+          onChange={(e) => setBet(Number(e.target.value))}
           min={0}
           max={balance}
           style={{
-            width: 60,
-            border: "1px solid #bbb",
+            width: 70,
+            border: "1px solid #00ccff",
             borderRadius: 6,
-            padding: "2px 8px",
+            padding: "4px 10px",
             fontSize: 15,
-            textAlign: "center"
+            textAlign: "center",
+            backgroundColor: "#121624",
+            color: "#00ffff",
+            boxShadow: "0 0 6px #00ccff44",
           }}
         />
       </div>
