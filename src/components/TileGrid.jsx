@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 
 const GRID_SIZE = 10;
 
@@ -33,9 +33,9 @@ export default function TileGrid({
   const [isMouseDown, setIsMouseDown] = useState(false);
   const gridRef = useRef();
 
-  // Responsive sizing
+  // Responsive square sizing
   const [size, setSize] = useState(300);
-  React.useEffect(() => {
+  useEffect(() => {
     function updateSize() {
       const margin = 24;
       const w = window.innerWidth;
@@ -71,14 +71,14 @@ export default function TileGrid({
 
   const handlePaint = (row, col) => {
     const indices = getBrushIndices(row, col, brushSize.width, brushSize.height, orientation);
-    setSelected(prev => {
+    setSelected((prev) => {
       const next = [...prev];
-      indices.forEach(idx => next[idx] = true);
+      indices.forEach((idx) => (next[idx] = true));
       return next;
     });
   };
 
-  const handleMouseMove = e => {
+  const handleMouseMove = (e) => {
     if (!isMouseDown) return;
     const rect = gridRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -94,7 +94,6 @@ export default function TileGrid({
   return (
     <div
       ref={gridRef}
-
       style={{
         display: "grid",
         gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
@@ -106,11 +105,11 @@ export default function TileGrid({
         position: "fixed",
         top: 0,
         left: 0,
-        marginTop: 0,
+        margin: 0,
         zIndex: 2,
-
-        width: 'min(100vw, 100vh)',
-        height: 'min(100vw, 100vh)',
+        width: "min(100vw, 100vh)",
+        height: "min(100vw, 100vh)",
+        boxShadow: "0 0 15px rgba(0,255,255,0.05)",
       }}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
@@ -121,31 +120,36 @@ export default function TileGrid({
         const col = i % GRID_SIZE;
         const isHovered = hoveredIndices.includes(i);
         const isSelected = selected[i];
-        const baseColor = mode === "offense" ? "#f44336" : "#2196f3";
-        const illumColor = mode === "offense" ? "#ff7961" : "#64b5f6";
+
+        const baseColor = mode === "offense" ? "#1c0b0b" : "#0b1c1f";
+        const hoverColor = mode === "offense" ? "#ff5560" : "#33bbff";
+        const activeColor = mode === "offense" ? "#ff1a40" : "#00ccff";
+
         const tileColor = isSelected
-          ? illumColor
+          ? activeColor
           : isHovered
-            ? "#fff5"
+            ? hoverColor
             : baseColor;
-        const showPng = isHovered || isSelected;
+
+        const showImg = isHovered || isSelected;
+
         return (
           <div
             key={i}
             style={{
-
               background: tileColor,
-              border: "1px solid #fff6",
-              borderRadius: 5,
+              border: `1px solid ${isSelected ? "#fff6" : "#00ffcc33"}`,
+              borderRadius: 4,
               position: "relative",
               cursor: "pointer",
-              transition: "background 0.12s"
+              transition: "background 0.1s",
+              boxShadow: isSelected ? `0 0 6px ${activeColor}` : "none",
             }}
             onMouseOver={() => handleMouseOver(row, col)}
             onMouseOut={handleMouseOut}
             onMouseDown={() => handleMouseDown(row, col)}
           >
-            {showPng &&
+            {showImg && (
               <img
                 src={imgSrc}
                 alt=""
@@ -157,11 +161,12 @@ export default function TileGrid({
                   height: "100%",
                   pointerEvents: "none",
                   opacity: isSelected ? 1 : 0.7,
-                  userSelect: "none"
+                  userSelect: "none",
+                  filter: "drop-shadow(0 0 4px rgba(0,255,255,0.3))",
                 }}
                 draggable={false}
               />
-            }
+            )}
           </div>
         );
       })}
