@@ -69,6 +69,7 @@ export default function App() {
   const selected = mode === "offense" ? offenseSelected : defenseSelected;
   const setSelected = mode === "offense" ? setOffenseSelected : setDefenseSelected;
   const selectedCount = selected.filter(Boolean).length;
+  const totalTiles = GRID_SIZE * GRID_SIZE;
 
   const handleReset = () => {
     console.log("🧼 Resetting grid selection");
@@ -76,9 +77,11 @@ export default function App() {
   };
 
   const handleFire = async () => {
+    if (selectedCount <= 0 || selectedCount >= totalTiles) return;
+
     if (bet > 0 && bet <= balance) {
       const targetNumber = selectedCount;
-      const gameMode = mode === "defense" ? "over" : "under"; // ✅ Dynamic
+      const gameMode = mode === "defense" ? "over" : "under";
 
       const payload = {
         mode: gameMode,
@@ -171,6 +174,7 @@ export default function App() {
           setBet={setBet}
           mode={mode}
           isPortrait={isPortrait}
+          canFire={selectedCount > 0 && selectedCount < totalTiles}
         />
       </div>
     </div>
