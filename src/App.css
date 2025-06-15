@@ -6,14 +6,17 @@ body,
   margin: 0;
   padding: 0;
   touch-action: none;
-  /* disables pinch/zoom */
   overscroll-behavior: none;
+  background-color: #0a0e1a;
+  font-family: 'Share Tech Mono', monospace;
+  color: #00ffcc;
 }
 
+/* Global UI Foundation */
 body {
-  background: #10131a;
-  color: #fff;
-  font-family: 'Inter', Arial, sans-serif;
+  background: #0a0e1a;
+  color: #00ffcc;
+  font-family: 'Share Tech Mono', monospace;
 }
 
 .app-wrapper {
@@ -23,8 +26,9 @@ body {
   justify-content: center;
   width: 100vw;
   height: 100vh;
-  box-sizing: border-box;
   overflow: hidden;
+  background: radial-gradient(circle at center, #0a0e1a 60%, #000814 100%);
+  box-shadow: inset 0 0 80px rgba(0, 255, 255, 0.06);
 }
 
 @media (min-width: 800px) {
@@ -36,46 +40,34 @@ body {
 
 .grid-wrapper {
   display: grid;
-  flex-direction: column;
-  align-items: center;
-
-  flex: 0 0 auto;
   box-sizing: border-box;
-  padding-top: 0vw;
+  padding-top: 0;
   position: fixed;
-  top: 0px;
-  left: 0px;
-  margin-top: 0;
-  margin-left: 0;
+  top: 0;
+  left: 0;
+  background-color: #00131f;
+  box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.2);
+  border-right: 2px solid #00ccff;
 }
 
 @media (min-width: 801px) {
   .grid-wrapper {
-    align-items: flex-start;
     min-width: 320px;
-    padding-top: 0;
-    padding-left: 0;
-    margin-left: 0;
-    margin-top: 0;
-    position: fixed;
-    top: 0;
-    left: 0;
+    padding: 0;
+    margin: 0;
   }
 }
 
 .panel-wrapper {
   width: 100vw;
-
+  background: #121624;
+  padding-bottom: 3vw;
+  padding-top: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  flex: 0 0 auto;
-  background: rgba(0, 0, 0, 0.04);
-  box-sizing: border-box;
-  padding-bottom: 3vw;
-  padding-top: 0vw;
-  overflow: visible;
+  box-shadow: inset 0 0 40px rgba(0, 255, 255, 0.08);
+  border-left: 2px solid #00ccff;
 }
 
 @media (min-width: 801px) {
@@ -85,38 +77,46 @@ body {
     width: 100%;
     height: 100vh;
     align-items: flex-start;
-    padding: 32px 18px 18px 18px;
-    margin-left: 0vw;
-    border-radius: 16px;
+    padding: 32px 18px;
+    border-radius: 0;
   }
 }
 
 .fulfillment-slider-wrapper {
-  display: none
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 6px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: bold;
+  color: #00ffff;
+  background: rgba(0, 255, 255, 0.05);
+  border-bottom: 1px solid #00ccff;
+  box-shadow: inset 0 -1px 3px #00ccff22;
+  display: none;
 }
 
 @media (max-width: 800px) {
   .fulfillment-slider-wrapper {
-    display: none
+    display: none;
   }
 }
 
-/* Mode select full-viewport */
+/* Mode Select Fullscreen Overlay */
 .mode-select-bg {
   width: 100vw;
   height: 100vh;
-  min-height: 100vh;
-  min-width: 100vw;
   position: fixed;
   left: 0;
   top: 0;
   z-index: 999;
-  background: #10131a;
+  background: #0a0e1a;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  overscroll-behavior: none;
   user-select: none;
   touch-action: none;
 }
@@ -138,10 +138,10 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 100vw;
-  height: 100vh;
   justify-content: center;
   gap: 56px;
+  width: 100vw;
+  height: 100vh;
 }
 
 @media (min-width: 801px) {
@@ -152,7 +152,7 @@ body {
 }
 
 .mode-select-btn {
-  width: 220px;
+  width: 240px;
   height: 90px;
   font-size: 2.2rem;
   font-weight: 900;
@@ -160,55 +160,63 @@ body {
   border-radius: 8px;
   border: none;
   box-shadow: 0 2px 18px #0004;
-  margin: 0 0;
   cursor: pointer;
-  opacity: 0.85;
-  transition: filter 0.15s, opacity 0.15s;
+  transition: 0.15s all;
+  color: #fff;
 }
 
 .mode-select-btn.offense {
-  background: #f44336;
-  color: #fff;
-  border: 3px solid #000000;
+  background: linear-gradient(to bottom, #ff3d3d, #c70039);
+  border: 2px solid #ff5e5e;
+  text-shadow: 0 0 5px #ff5e5e;
 }
 
 .mode-select-btn.defense {
-  background: #2196f3;
-  color: #fff;
-  border: 3px solid #000000;
+  background: linear-gradient(to bottom, #2196f3, #0d47a1);
+  border: 2px solid #33bbff;
+  text-shadow: 0 0 5px #33bbff;
 }
 
 .mode-select-btn:active {
-  filter: brightness(0.95);
-  opacity: 0.88;
+  filter: brightness(0.92);
+  transform: scale(0.98);
 }
 
-/* Highlight the app wrapper */
-.app-wrapper {
-  outline: 2px solid rgba(255, 0, 0, 1);
-  outline-offset: -2px;
-  background-color: rgba(255, 0, 0, 0.3);
+/* Inputs and buttons */
+input,
+button {
+  font-family: 'Share Tech Mono', monospace;
 }
 
-/* Highlight the grid wrapper */
-.grid-wrapper {
-  outline: 2px solid rgba(0, 255, 0, 1);
-  outline-offset: -2px;
-  background-color: rgba(0, 255, 0, 0.3);
+input {
+  background-color: #1b1f2f;
+  color: #00ffcc;
+  border: 1px solid #00ccff;
+  padding: 8px;
+  border-radius: 5px;
+  font-size: 14px;
 }
 
-/* Highlight the fulfillment slider wrapper */
-.fulfillment-slider-wrapper {
-  outline: 2px solid rgba(0, 0, 255, 1);
-  outline-offset: -2px;
-  background-color: rgba(0, 0, 255, 0.3);
+input:focus {
+  outline: none;
+  box-shadow: 0 0 5px #00ccffaa;
 }
 
-/* Highlight the panel wrapper */
-.panel-wrapper {
-  outline: 2px solid rgba(255, 255, 0, 1);
-  outline-offset: -2px;
-  background-color: rgba(255, 255, 0, 0.3);
+button {
+  background-color: #1c1e2e;
+  color: #00ffcc;
+  border: 2px solid #00ffcc;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 5px #00ffcc33;
 }
 
-/* Add more rules for other containers/wrappers as needed */
+button:hover {
+  background-color: #00ffcc;
+  color: #0a0e1a;
+  box-shadow: 0 0 12px #00ffcc99;
+}
