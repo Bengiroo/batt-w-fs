@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import "./LoginScreen.css"; // ⬅️ Create this CSS file
 
 export default function LoginScreen({ onLogin }) {
     const [isRegistering, setIsRegistering] = useState(false);
@@ -21,32 +22,34 @@ export default function LoginScreen({ onLogin }) {
     };
 
     return (
-        <div className="login-wrapper">
-            <h2>{isRegistering ? "Register" : "Login"}</h2>
+        <div className="login-terminal">
+            <h1 className="terminal-title">COMMAND LOGIN</h1>
             <input
+                className="terminal-input"
                 placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
             />
             <input
+                className="terminal-input"
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
             />
-            <button onClick={handleAuth}>
+            <button className="terminal-button" onClick={handleAuth}>
                 {isRegistering ? "Register" : "Login"}
             </button>
             <button
-                style={{ marginTop: 10, fontSize: 12 }}
+                className="terminal-toggle"
                 onClick={() => {
                     setIsRegistering(!isRegistering);
                     setError("");
                 }}
             >
-                {isRegistering ? "Have an account? Login" : "Need an account? Register"}
+                {isRegistering ? "Have access? LOGIN" : "New operator? REGISTER"}
             </button>
-            {error && <p style={{ color: "red" }}>{error}</p>}
+            {error && <div className="terminal-error">{error}</div>}
         </div>
     );
 }

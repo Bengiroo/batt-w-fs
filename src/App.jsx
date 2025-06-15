@@ -8,7 +8,7 @@ import SizeSlider from "./components/SizeSlider";
 import TileGrid from "./components/TileGrid";
 import FulfillmentSlider from "./components/FulfillmentSlider";
 import PanelControls from "./components/PanelControls";
-import LoginScreen from "./components/LoginScreen"; // <-- make sure this exists
+import LoginScreen from "./components/LoginScreen";
 
 const GRID_SIZE = 10;
 
@@ -30,7 +30,6 @@ export default function App() {
     }
   }, [token]);
 
-  // Validate token when token exists
   useEffect(() => {
     const validateToken = async () => {
       if (!token) return;
@@ -71,24 +70,33 @@ export default function App() {
   const setSelected = mode === "offense" ? setOffenseSelected : setDefenseSelected;
   const selectedCount = selected.filter(Boolean).length;
 
-  const handleReset = () => setSelected(Array(GRID_SIZE * GRID_SIZE).fill(false));
+  const handleReset = () => {
+    console.log("🧼 Resetting grid selection");
+    setSelected(Array(GRID_SIZE * GRID_SIZE).fill(false));
+  };
 
   const handleFire = async () => {
     if (bet > 0 && bet <= balance) {
+      const payload = {
+        mode: "under",
+        amount: bet,
+        targetNumber: selectedCount,
+      };
+
+      console.log("📡 Sending to API:", payload);
+
       try {
-        const res = await axios.post("http://localhost:4000/dice/roll", {
-          mode: "under",
-          amount: bet,
-          targetNumber: selectedCount,
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
+        const res = await axios.post("http://localhost:4000/dice/roll", payload, {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         setBalance((b) => b - bet);
-        console.log("API response:", res.data);
+        console.log("✅ API response:", res.data);
       } catch (err) {
-        console.error("API error:", err.response?.data || err.message);
+        console.error("❌ API error:", err.response?.data || err.message);
       }
+    } else {
+      console.warn("⚠️ Invalid bet amount");
     }
   };
 
@@ -145,7 +153,9 @@ export default function App() {
             width: 120,
             alignSelf: "center",
           }}
-          onClick={() => setOrientation(orientation === "horizontal" ? "vertical" : "horizontal")}
+          onClick={() =>
+            setOrientation(orientation === "horizontal" ? "vertical" : "horizontal")
+          }
         >
           Rotate: {orientation === "horizontal" ? "↔" : "↕"}
         </button>
