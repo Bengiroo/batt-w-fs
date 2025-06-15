@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
+import axios from "axios";
 import { shipSizeOptions, missileSizeOptions } from "./sizeOptions";
 import useOrientation from "./components/useOrientation";
 import ModeSelectScreen from "./components/ModeSelectScreen";
@@ -7,11 +8,14 @@ import SizeSlider from "./components/SizeSlider";
 import TileGrid from "./components/TileGrid";
 import FulfillmentSlider from "./components/FulfillmentSlider";
 import PanelControls from "./components/PanelControls";
+import LoginScreen from "./components/LoginScreen"; // <-- make sure this exists
 
 const GRID_SIZE = 10;
 
 export default function App() {
   const isPortrait = useOrientation();
+  const [token, setToken] = useState(localStorage.getItem("token") || "");
+  const [validated, setValidated] = useState(false);
   const [selectedMode, setSelectedMode] = useState(null);
   const [orientation, setOrientation] = useState("horizontal");
   const [sizeIdx, setSizeIdx] = useState(0);
@@ -19,6 +23,37 @@ export default function App() {
   const [offenseSelected, setOffenseSelected] = useState(Array(GRID_SIZE * GRID_SIZE).fill(false));
   const [balance, setBalance] = useState(500);
   const [bet, setBet] = useState(0);
+
+  useEffect(() => {
+    if (token) {
+      localStorage.setItem("token", token);
+    }
+  }, [token]);
+
+  // Validate token when token exists
+  useEffect(() => {
+    const validateToken = async () => {
+      if (!token) return;
+
+      try {
+        await axios.get("http://localhost:4000/auth/validate", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setValidated(true);
+      } catch (err) {
+        console.warn("Server unreachable or invalid token. Logging out.");
+        localStorage.removeItem("token");
+        setToken("");
+        setValidated(false);
+      }
+    };
+
+    validateToken();
+  }, [token]);
+
+  if (!token || !validated) {
+    return <LoginScreen onLogin={setToken} />;
+  }
 
   if (!selectedMode) {
     return (
@@ -37,9 +72,26 @@ export default function App() {
   const selectedCount = selected.filter(Boolean).length;
 
   const handleReset = () => setSelected(Array(GRID_SIZE * GRID_SIZE).fill(false));
-  const handleFire = () => {
-    if (bet > 0 && bet <= balance) setBalance(balance - bet);
+
+  const handleFire = async () => {
+    if (bet > 0 && bet <= balance) {
+      try {
+        const res = await axios.post("http://localhost:4000/dice/roll", {
+          mode: "under",
+          amount: bet,
+          targetNumber: selectedCount,
+        }, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        setBalance((b) => b - bet);
+        console.log("API response:", res.data);
+      } catch (err) {
+        console.error("API error:", err.response?.data || err.message);
+      }
+    }
   };
+
   const handleAnchor = () => {
     alert("Anchor set!");
   };
@@ -60,7 +112,7 @@ export default function App() {
           brushSize={brushSize}
           orientation={orientation}
           selected={defenseSelected}
-          setSelected={mode === "defense" ? setDefenseSelected : () => {}}
+          setSelected={mode === "defense" ? setDefenseSelected : () => { }}
           imgSrc="/ship.png"
         />
         <TileGrid
@@ -69,7 +121,7 @@ export default function App() {
           brushSize={brushSize}
           orientation={orientation}
           selected={offenseSelected}
-          setSelected={mode === "offense" ? setOffenseSelected : () => {}}
+          setSelected={mode === "offense" ? setOffenseSelected : () => { }}
           imgSrc="/missile.png"
         />
       </div>
