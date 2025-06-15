@@ -77,10 +77,13 @@ export default function App() {
 
   const handleFire = async () => {
     if (bet > 0 && bet <= balance) {
+      const targetNumber = selectedCount;
+      const gameMode = mode === "defense" ? "over" : "under"; // ✅ Dynamic
+
       const payload = {
-        mode: "under",
+        mode: gameMode,
         amount: bet,
-        targetNumber: selectedCount,
+        targetNumber,
       };
 
       console.log("📡 Sending to API:", payload);
