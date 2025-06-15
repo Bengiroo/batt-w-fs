@@ -1,0 +1,34 @@
+.win-overlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 20vmin;
+    height: 20vmin;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 999;
+}
+
+.win-box {
+    text-align: center;
+    color: white;
+    font-family: "Share Tech Mono", monospace;
+    text-shadow: 0 0 6px white, 0 0 10px #0ff;
+}
+
+.win-amount {
+    font-size: 3vmin;
+    font-weight: bold;
+}
+
+.win-multiplier {
+    font-size: 2vmin;
+    margin-top: 0.5vmin;
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import axios from "axios";
 import { shipSizeOptions, missileSizeOptions } from "./sizeOptions";
@@ -9,6 +9,7 @@ import TileGrid from "./components/TileGrid";
 import FulfillmentSlider from "./components/FulfillmentSlider";
 import PanelControls from "./components/PanelControls";
 import LoginScreen from "./components/LoginScreen";
+import WinOverlay from "./components/WinOverlay";
 
 const GRID_SIZE = 10;
 
@@ -23,6 +24,11 @@ export default function App() {
   const [offenseSelected, setOffenseSelected] = useState(Array(GRID_SIZE * GRID_SIZE).fill(false));
   const [balance, setBalance] = useState(500);
   const [bet, setBet] = useState(0);
+  const [winAmount, setWinAmount] = useState(null);
+  const [multiplier, setMultiplier] = useState(null);
+  const [winVisible, setWinVisible] = useState(false);
+  const gridWrapperRef = useRef(null);
+  const [gridBounds, setGridBounds] = useState(null);
 
   useEffect(() => {
     if (token) {
@@ -33,7 +39,6 @@ export default function App() {
   useEffect(() => {
     const validateToken = async () => {
       if (!token) return;
-
       try {
         await axios.get("http://localhost:4000/auth/validate", {
           headers: { Authorization: `Bearer ${token}` },
@@ -46,9 +51,22 @@ export default function App() {
         setValidated(false);
       }
     };
-
     validateToken();
   }, [token]);
+
+  useEffect(() => {
+    if (gridWrapperRef.current) {
+      const bounds = gridWrapperRef.current.getBoundingClientRect();
+      setGridBounds(bounds);
+    }
+  }, [orientation, selectedMode]);
+
+  useEffect(() => {
+    // Force win overlay for test
+    setWinAmount(250);
+    setMultiplier(2.5);
+    setWinVisible(true);
+  }, []);
 
   if (!token || !validated) {
     return <LoginScreen onLogin={setToken} />;
@@ -69,40 +87,41 @@ export default function App() {
   const selected = mode === "offense" ? offenseSelected : defenseSelected;
   const setSelected = mode === "offense" ? setOffenseSelected : setDefenseSelected;
   const selectedCount = selected.filter(Boolean).length;
-  const totalTiles = GRID_SIZE * GRID_SIZE;
+  const canFire = selectedCount > 0 && selectedCount < GRID_SIZE * GRID_SIZE;
 
   const handleReset = () => {
-    console.log("🧼 Resetting grid selection");
     setSelected(Array(GRID_SIZE * GRID_SIZE).fill(false));
+    setWinVisible(false);
+    setWinAmount(null);
+    setMultiplier(null);
   };
 
   const handleFire = async () => {
-    if (selectedCount <= 0 || selectedCount >= totalTiles) return;
+    if (!canFire || bet <= 0 || bet > balance) return;
 
-    if (bet > 0 && bet <= balance) {
-      const targetNumber = selectedCount;
-      const gameMode = mode === "defense" ? "over" : "under";
+    const targetNumber = selectedCount;
+    const gameMode = mode === "defense" ? "over" : "under";
+    const payload = { mode: gameMode, amount: bet, targetNumber };
 
-      const payload = {
-        mode: gameMode,
-        amount: bet,
-        targetNumber,
-      };
+    console.log("📡 Sending to API:", payload);
 
-      console.log("📡 Sending to API:", payload);
+    try {
+      const res = await axios.post("http://localhost:4000/dice/roll", payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-      try {
-        const res = await axios.post("http://localhost:4000/dice/roll", payload, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      setBalance((b) => b - bet);
+      console.log("✅ API response:", res.data);
+      const { winAmount: result, multiplier: multi } = res.data;
 
-        setBalance((b) => b - bet);
-        console.log("✅ API response:", res.data);
-      } catch (err) {
-        console.error("❌ API error:", err.response?.data || err.message);
+      if (result && multi) {
+        setWinAmount(result);
+        setMultiplier(multi);
+        setWinVisible(true);
+        setTimeout(() => setWinVisible(false), 3000);
       }
-    } else {
-      console.warn("⚠️ Invalid bet amount");
+    } catch (err) {
+      console.error("❌ API error:", err.response?.data || err.message);
     }
   };
 
@@ -112,7 +131,7 @@ export default function App() {
 
   return (
     <div className="app-wrapper">
-      <div className="grid-wrapper" style={{ position: "relative", flex: "1 1 auto", justifyContent: "center" }}>
+      <div ref={gridWrapperRef} className="grid-wrapper" style={{ position: "relative", flex: "1 1 auto", justifyContent: "center" }}>
         <div className="fulfillment-slider-wrapper">
           <FulfillmentSlider
             value={selectedCount}
@@ -138,6 +157,14 @@ export default function App() {
           setSelected={mode === "offense" ? setOffenseSelected : () => { }}
           imgSrc="/missile.png"
         />
+        {winVisible && (
+          <WinOverlay
+            visible={true}
+            amount={winAmount}
+            multiplier={multiplier}
+            gridBounds={gridBounds}
+          />
+        )}
       </div>
       <div className="panel-wrapper">
         <SizeSlider
@@ -174,7 +201,7 @@ export default function App() {
           setBet={setBet}
           mode={mode}
           isPortrait={isPortrait}
-          canFire={selectedCount > 0 && selectedCount < totalTiles}
+          canFire={canFire}
         />
       </div>
     </div>
