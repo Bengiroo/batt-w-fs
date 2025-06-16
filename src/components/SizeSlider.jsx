@@ -14,7 +14,7 @@ export default function SizeSlider({ sizeOptions, value, setValue, isOffense }) 
         onChange={(e) => setValue(Number(e.target.value))}
         step={1}
         style={{
-          width: "80%",
+          width: "60%",
           margin: "0 auto",
           display: "block",
           WebkitAppearance: "none",

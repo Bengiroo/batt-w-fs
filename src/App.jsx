@@ -1,4 +1,3 @@
-// App.jsx
 import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import axios from "axios";
@@ -14,7 +13,6 @@ import WinOverlay from "./components/WinOverlay";
 
 const GRID_SIZE = 10;
 
-// Randomly shuffle array in-place
 function shuffle(arr) {
   let a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
@@ -24,13 +22,8 @@ function shuffle(arr) {
   return a;
 }
 
-/**
- * Try to find random lines (horizontal or vertical, length 2 or 3), then fill singles if needed.
- * Result is up to maxTiles indices from allowedIndices, as grouped as possible, randomly placed.
- */
 function pickRandomLineBlocks(allowedIndices, maxTiles = 5) {
   allowedIndices = shuffle(allowedIndices);
-
   const used = new Set();
   const found = [];
 
@@ -43,13 +36,11 @@ function pickRandomLineBlocks(allowedIndices, maxTiles = 5) {
     grid[row][col] = true;
   });
 
-  // Helper to record a block and mark as used
   function addBlock(indices) {
     for (let idx of indices) used.add(idx);
     found.push(...indices);
   }
 
-  // Try to find horizontal lines of 3
   let lines = [];
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col <= GRID_SIZE - 3; col++) {
@@ -65,7 +56,6 @@ function pickRandomLineBlocks(allowedIndices, maxTiles = 5) {
     addBlock(block);
   }
 
-  // Try to find vertical lines of 3
   lines = [];
   for (let col = 0; col < GRID_SIZE; col++) {
     for (let row = 0; row <= GRID_SIZE - 3; row++) {
@@ -81,7 +71,6 @@ function pickRandomLineBlocks(allowedIndices, maxTiles = 5) {
     addBlock(block);
   }
 
-  // Try to find horizontal lines of 2
   lines = [];
   for (let row = 0; row < GRID_SIZE; row++) {
     for (let col = 0; col <= GRID_SIZE - 2; col++) {
@@ -97,7 +86,6 @@ function pickRandomLineBlocks(allowedIndices, maxTiles = 5) {
     addBlock(block);
   }
 
-  // Try to find vertical lines of 2
   lines = [];
   for (let col = 0; col < GRID_SIZE; col++) {
     for (let row = 0; row <= GRID_SIZE - 2; row++) {
@@ -113,7 +101,6 @@ function pickRandomLineBlocks(allowedIndices, maxTiles = 5) {
     addBlock(block);
   }
 
-  // Fill singles if needed
   const singles = shuffle(allowedIndices.filter(i => !used.has(i)));
   for (let i = 0; i < singles.length && found.length < maxTiles; ++i) {
     used.add(singles[i]);
@@ -220,64 +207,33 @@ export default function App() {
       setWinVisible(true);
       setIsLoss(!win);
 
+      const selectedIndices = selected.map((v, i) => v ? i : null).filter(i => i !== null);
+      const unselectedIndices = selected.map((v, i) => !v ? i : null).filter(i => i !== null);
+
       if (mode === "offense") {
-        const selectedIndices = offenseSelected.map((v, i) => v ? i : null).filter(i => i !== null);
-        const unselectedIndices = offenseSelected.map((v, i) => !v ? i : null).filter(i => i !== null);
-
         if (win) {
-          // 1.png in one selected space
-          let hitTiles = [];
-          if (selectedIndices.length > 0) {
-            hitTiles = [selectedIndices[Math.floor(Math.random() * selectedIndices.length)]];
-          }
-          setHitTiles(hitTiles);
-
-          // 2.png in up to 5 unselected spaces, grouped randomly in lines if possible
-          let enemyShipTiles = [];
-          if (selectedCount === GRID_SIZE * GRID_SIZE - 1) {
-            enemyShipTiles = unselectedIndices.slice(0, 1);
-          } else if (unselectedIndices.length > 0) {
-            enemyShipTiles = pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length));
-          }
-          setEnemyShipTiles(enemyShipTiles);
+          const hit = selectedIndices.length > 0 ? [selectedIndices[Math.floor(Math.random() * selectedIndices.length)]] : [];
+          setHitTiles(hit);
+          const enemy = unselectedIndices.length > 0 ? pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length)) : [];
+          setEnemyShipTiles(enemy);
         } else {
-          // Loss: 1.png never, 2.png in up to 5 unselected spaces, grouped randomly
           setHitTiles([]);
-          let enemyShipTiles = [];
-          if (unselectedIndices.length > 0) {
-            enemyShipTiles = pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length));
-          }
-          setEnemyShipTiles(enemyShipTiles);
+          const enemy = unselectedIndices.length > 0 ? pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length)) : [];
+          setEnemyShipTiles(enemy);
         }
-      } else if (mode === "defense") {
-        const selectedIndices = defenseSelected.map((v, i) => v ? i : null).filter(i => i !== null);
-        const unselectedIndices = defenseSelected.map((v, i) => !v ? i : null).filter(i => i !== null);
-
+      } else {
         if (win) {
-          // 4.png never, 3.png in up to 5 unselected, grouped randomly
-          let enemyMissiles = [];
-          if (unselectedIndices.length > 0) {
-            enemyMissiles = pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length));
-          }
-          setEnemyMissiles(enemyMissiles);
           setEnemyHits([]);
+          const enemy = unselectedIndices.length > 0 ? pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length)) : [];
+          setEnemyMissiles(enemy);
         } else {
-          // 4.png in 1–5 selected, 3.png in up to 5 unselected, grouped randomly
-          let enemyHits = [];
-          if (selectedIndices.length > 0) {
-            const hitCount = Math.min(Math.max(1, Math.floor(Math.random() * 5) + 1), selectedIndices.length);
-            enemyHits = shuffle(selectedIndices).slice(0, hitCount);
-          }
-          setEnemyHits(enemyHits);
-
-          let enemyMissiles = [];
-          if (unselectedIndices.length > 0) {
-            enemyMissiles = pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length));
-          }
-          setEnemyMissiles(enemyMissiles);
+          const hitCount = Math.min(Math.max(1, Math.floor(Math.random() * 5) + 1), selectedIndices.length);
+          const hits = shuffle(selectedIndices).slice(0, hitCount);
+          setEnemyHits(hits);
+          const enemy = unselectedIndices.length > 0 ? pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length)) : [];
+          setEnemyMissiles(enemy);
         }
       }
-      // No auto-fade, no auto-hide
     } catch (err) {
       console.error("API error:", err.response?.data || err.message);
     }
@@ -290,6 +246,18 @@ export default function App() {
 
   return (
     <div className="app-wrapper">
+      <style>
+        {`
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+          .rotate-hover:hover img {
+            animation: spin 1s linear infinite;
+          }
+        `}
+      </style>
+
       <div ref={gridWrapperRef} className="grid-wrapper" style={{ position: "relative", flex: "1 1 auto" }}>
         <div style={{ display: "none" }}>
           <FulfillmentSlider value={selectedCount} total={GRID_SIZE * GRID_SIZE} mode={mode} />
@@ -340,23 +308,43 @@ export default function App() {
         />
 
         <button
-          style={{
-            marginBottom: 12,
-            padding: "7px 14px",
-            fontSize: 15,
-            background: "#ffd600",
-            border: "1px solid #bbb",
-            borderRadius: 7,
-            cursor: "pointer",
-            fontWeight: 600,
-            width: 120,
-            alignSelf: "center",
-          }}
           onClick={() => setOrientation(orientation === "horizontal" ? "vertical" : "horizontal")}
+          className="rotate-hover"
+          style={{
+            position: "relative",
+            width: 60,
+            height: 60,
+            borderRadius: "50%",
+            border: "2px solid #00ccff",
+            backgroundColor: "#121624",
+            color: "#00ffff",
+            fontSize: 24,
+            fontWeight: 700,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 12,
+            cursor: "pointer",
+            boxShadow: "0 0 8px #00ccff88",
+            overflow: "hidden",
+          }}
         >
-          Rotate: {orientation === "horizontal" ? "↔" : "↕"}
+          <img
+            src="/rotate.png"
+            alt="rotate"
+            style={{
+              position: "absolute",
+              width: "100%",
+              height: "100%",
+              top: 0,
+              left: 0,
+              objectFit: "cover",
+              opacity: 0.15,
+              pointerEvents: "none",
+            }}
+          />
+          {orientation === "horizontal" ? "↔" : "↕"}
         </button>
-
 
         <PanelControls
           onReset={handleReset}
