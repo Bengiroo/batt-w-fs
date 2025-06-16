@@ -1,4 +1,3 @@
-// --- App.jsx ---
 import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import axios from "axios";
@@ -14,14 +13,118 @@ import WinOverlay from "./components/WinOverlay";
 
 const GRID_SIZE = 10;
 
-function getRandomIndices(exclude = [], count = 1) {
-  const all = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => i).filter(i => !exclude.includes(i));
-  const shuffled = all.sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, count);
+// Randomly shuffle array in-place
+function shuffle(arr) {
+  let a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * Try to find random lines (horizontal or vertical, length 2 or 3), then fill singles if needed.
+ * Result is up to maxTiles indices from allowedIndices, as grouped as possible, randomly placed.
+ */
+function pickRandomLineBlocks(allowedIndices, maxTiles = 5) {
+  allowedIndices = shuffle(allowedIndices);
+
+  const used = new Set();
+  const found = [];
+
+  const grid = Array(GRID_SIZE)
+    .fill(0)
+    .map(() => Array(GRID_SIZE).fill(false));
+  allowedIndices.forEach(i => {
+    const row = Math.floor(i / GRID_SIZE);
+    const col = i % GRID_SIZE;
+    grid[row][col] = true;
+  });
+
+  // Helper to record a block and mark as used
+  function addBlock(indices) {
+    for (let idx of indices) used.add(idx);
+    found.push(...indices);
+  }
+
+  // Try to find horizontal lines of 3
+  let lines = [];
+  for (let row = 0; row < GRID_SIZE; row++) {
+    for (let col = 0; col <= GRID_SIZE - 3; col++) {
+      const idxs = [row * GRID_SIZE + col, row * GRID_SIZE + col + 1, row * GRID_SIZE + col + 2];
+      if (idxs.every(i => grid[Math.floor(i / GRID_SIZE)][i % GRID_SIZE] && !used.has(i))) {
+        lines.push(idxs);
+      }
+    }
+  }
+  lines = shuffle(lines);
+  for (let block of lines) {
+    if (found.length + 3 > maxTiles) break;
+    addBlock(block);
+  }
+
+  // Try to find vertical lines of 3
+  lines = [];
+  for (let col = 0; col < GRID_SIZE; col++) {
+    for (let row = 0; row <= GRID_SIZE - 3; row++) {
+      const idxs = [row * GRID_SIZE + col, (row + 1) * GRID_SIZE + col, (row + 2) * GRID_SIZE + col];
+      if (idxs.every(i => grid[Math.floor(i / GRID_SIZE)][i % GRID_SIZE] && !used.has(i))) {
+        lines.push(idxs);
+      }
+    }
+  }
+  lines = shuffle(lines);
+  for (let block of lines) {
+    if (found.length + 3 > maxTiles) break;
+    addBlock(block);
+  }
+
+  // Try to find horizontal lines of 2
+  lines = [];
+  for (let row = 0; row < GRID_SIZE; row++) {
+    for (let col = 0; col <= GRID_SIZE - 2; col++) {
+      const idxs = [row * GRID_SIZE + col, row * GRID_SIZE + col + 1];
+      if (idxs.every(i => grid[Math.floor(i / GRID_SIZE)][i % GRID_SIZE] && !used.has(i))) {
+        lines.push(idxs);
+      }
+    }
+  }
+  lines = shuffle(lines);
+  for (let block of lines) {
+    if (found.length + 2 > maxTiles) break;
+    addBlock(block);
+  }
+
+  // Try to find vertical lines of 2
+  lines = [];
+  for (let col = 0; col < GRID_SIZE; col++) {
+    for (let row = 0; row <= GRID_SIZE - 2; row++) {
+      const idxs = [row * GRID_SIZE + col, (row + 1) * GRID_SIZE + col];
+      if (idxs.every(i => grid[Math.floor(i / GRID_SIZE)][i % GRID_SIZE] && !used.has(i))) {
+        lines.push(idxs);
+      }
+    }
+  }
+  lines = shuffle(lines);
+  for (let block of lines) {
+    if (found.length + 2 > maxTiles) break;
+    addBlock(block);
+  }
+
+  // Fill singles if needed
+  const singles = shuffle(allowedIndices.filter(i => !used.has(i)));
+  for (let i = 0; i < singles.length && found.length < maxTiles; ++i) {
+    used.add(singles[i]);
+    found.push(singles[i]);
+  }
+
+  return found.slice(0, maxTiles);
 }
 
 export default function App() {
   const isPortrait = useOrientation();
+  const initialBalance = 500;
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [validated, setValidated] = useState(false);
   const [selectedMode, setSelectedMode] = useState(null);
@@ -33,13 +136,12 @@ export default function App() {
   const [hitTiles, setHitTiles] = useState([]);
   const [enemyMissiles, setEnemyMissiles] = useState([]);
   const [enemyHits, setEnemyHits] = useState([]);
-  const [balance, setBalance] = useState(500);
-  const [bet, setBet] = useState(0);
+  const [balance, setBalance] = useState(initialBalance);
+  const [bet, setBet] = useState(() => Math.floor(initialBalance / 10));
   const [winAmount, setWinAmount] = useState(0);
   const [multiplier, setMultiplier] = useState(0);
   const [winVisible, setWinVisible] = useState(false);
-  const [isFading, setIsFading] = useState(false);
-  const [wasWin, setWasWin] = useState(false);
+  const [isLoss, setIsLoss] = useState(false);
   const gridWrapperRef = useRef(null);
   const [gridBounds, setGridBounds] = useState(null);
 
@@ -90,11 +192,11 @@ export default function App() {
     setWinVisible(false);
     setWinAmount(0);
     setMultiplier(0);
-    setIsFading(false);
     setEnemyShipTiles([]);
     setHitTiles([]);
     setEnemyMissiles([]);
     setEnemyHits([]);
+    setIsLoss(false);
   };
 
   const handleFire = async () => {
@@ -115,31 +217,66 @@ export default function App() {
       setWinAmount(profit);
       setMultiplier(payoutMultiplier);
       setWinVisible(true);
-      setWasWin(win);
-      setIsFading(false);
+      setIsLoss(!win);
 
       if (mode === "offense") {
-        if (!win) {
-          setEnemyShipTiles(getRandomIndices(offenseSelected, 7));
-          setHitTiles([]);
+        const selectedIndices = offenseSelected.map((v, i) => v ? i : null).filter(i => i !== null);
+        const unselectedIndices = offenseSelected.map((v, i) => !v ? i : null).filter(i => i !== null);
+
+        if (win) {
+          // 1.png in one selected space
+          let hitTiles = [];
+          if (selectedIndices.length > 0) {
+            hitTiles = [selectedIndices[Math.floor(Math.random() * selectedIndices.length)]];
+          }
+          setHitTiles(hitTiles);
+
+          // 2.png in up to 5 unselected spaces, grouped randomly in lines if possible
+          let enemyShipTiles = [];
+          if (selectedCount === GRID_SIZE * GRID_SIZE - 1) {
+            enemyShipTiles = unselectedIndices.slice(0, 1);
+          } else if (unselectedIndices.length > 0) {
+            enemyShipTiles = pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length));
+          }
+          setEnemyShipTiles(enemyShipTiles);
         } else {
-          const hits = getRandomIndices(offenseSelected, 2);
-          setHitTiles(hits);
-          setEnemyShipTiles((prev) => prev.filter((i) => !hits.includes(i)));
+          // Loss: 1.png never, 2.png in up to 5 unselected spaces, grouped randomly
+          setHitTiles([]);
+          let enemyShipTiles = [];
+          if (unselectedIndices.length > 0) {
+            enemyShipTiles = pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length));
+          }
+          setEnemyShipTiles(enemyShipTiles);
         }
       } else if (mode === "defense") {
-        if (!win) {
-          const missiles = getRandomIndices([], Math.floor(Math.random() * 2) + 2);
-          setEnemyMissiles(missiles);
-          setEnemyHits(missiles.filter((i) => defenseSelected[i]));
-        } else {
-          setEnemyMissiles(getRandomIndices(defenseSelected, 2));
+        const selectedIndices = defenseSelected.map((v, i) => v ? i : null).filter(i => i !== null);
+        const unselectedIndices = defenseSelected.map((v, i) => !v ? i : null).filter(i => i !== null);
+
+        if (win) {
+          // 4.png never, 3.png in up to 5 unselected, grouped randomly
+          let enemyMissiles = [];
+          if (unselectedIndices.length > 0) {
+            enemyMissiles = pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length));
+          }
+          setEnemyMissiles(enemyMissiles);
           setEnemyHits([]);
+        } else {
+          // 4.png in 1–5 selected, 3.png in up to 5 unselected, grouped randomly
+          let enemyHits = [];
+          if (selectedIndices.length > 0) {
+            const hitCount = Math.min(Math.max(1, Math.floor(Math.random() * 5) + 1), selectedIndices.length);
+            enemyHits = shuffle(selectedIndices).slice(0, hitCount);
+          }
+          setEnemyHits(enemyHits);
+
+          let enemyMissiles = [];
+          if (unselectedIndices.length > 0) {
+            enemyMissiles = pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length));
+          }
+          setEnemyMissiles(enemyMissiles);
         }
       }
-
-      setTimeout(() => setIsFading(true), 5000);
-      setTimeout(() => setWinVisible(false), 8000);
+      // No auto-fade, no auto-hide
     } catch (err) {
       console.error("API error:", err.response?.data || err.message);
     }
@@ -167,7 +304,7 @@ export default function App() {
           imgSrc="/5.png"
           enemyMissiles={enemyMissiles}
           enemyHits={enemyHits}
-          win={winVisible}
+          win={winVisible && !isLoss}
         />
         <TileGrid
           visible={mode === "offense"}
@@ -179,17 +316,16 @@ export default function App() {
           imgSrc="/6.png"
           enemyTiles={enemyShipTiles}
           hitTiles={hitTiles}
-          win={winVisible}
+          win={winVisible && !isLoss}
         />
 
-        {winVisible && gridBounds && (
+        {gridBounds && (
           <WinOverlay
-            visible={true}
+            visible={winVisible}
             balanceChange={winAmount}
             multiplier={multiplier}
             gridBounds={gridBounds}
-            fading={isFading}
-            wasWin={wasWin}
+            isLoss={isLoss}
           />
         )}
       </div>

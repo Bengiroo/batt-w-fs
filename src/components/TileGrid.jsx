@@ -1,5 +1,3 @@
-// --- TileGrid.jsx (Persistent Hits) ---
-
 import React, { useState, useRef, useEffect } from "react";
 
 const GRID_SIZE = 10;
@@ -39,8 +37,8 @@ export default function TileGrid({
   const [hoveredIndices, setHoveredIndices] = useState([]);
   const [isMouseDown, setIsMouseDown] = useState(false);
   const gridRef = useRef();
-  const [size, setSize] = useState(300);
 
+  const [size, setSize] = useState(300);
   useEffect(() => {
     function updateSize() {
       const margin = 24;
@@ -139,7 +137,15 @@ export default function TileGrid({
             ? hoverColor
             : baseColor;
 
-        const show1 = mode === "offense" && isSelected && isHit;
+        // Show rules:
+        // Offense:
+        //   Win: show 1.png on selected+hit, 2.png on unselected+enemyTile
+        //   Loss: 1.png never, 2.png on unselected+enemyTile
+        // Defense:
+        //   Win: 3.png on unselected+missile (never selected, never 4.png)
+        //   Loss: 3.png on unselected+missile, 4.png on selected+enemyHit
+
+        const show1 = mode === "offense" && win && isSelected && isHit;
         const show2 = mode === "offense" && !isSelected && isEnemyTile;
         const show3 = mode === "defense" && !isSelected && isMissile;
         const show4 = mode === "defense" && !win && isSelected && isEnemyHit;
@@ -160,18 +166,10 @@ export default function TileGrid({
             onMouseOut={handleMouseOut}
             onMouseDown={() => handleMouseDown(row, col)}
           >
-            {show1 && (
-              <img src="/1.png" alt="hit" style={imgStyle("lime")} draggable={false} />
-            )}
-            {show4 && (
-              <img src="/4.png" alt="sink" style={imgStyle("red")} draggable={false} />
-            )}
-            {show3 && (
-              <img src="/3.png" alt="missile" style={imgStyle("orange", 0.95)} draggable={false} />
-            )}
-            {show2 && (
-              <img src="/2.png" alt="enemy" style={imgStyle("red", 0.9)} draggable={false} />
-            )}
+            {show1 && <img src="/1.png" alt="hit" style={imgStyle("lime")} draggable={false} />}
+            {show2 && <img src="/2.png" alt="enemy" style={imgStyle("red", 0.9)} draggable={false} />}
+            {show3 && <img src="/3.png" alt="missile" style={imgStyle("orange", 0.95)} draggable={false} />}
+            {show4 && <img src="/4.png" alt="sink" style={imgStyle("red")} draggable={false} />}
             {!show1 && !show2 && !show3 && !show4 && (isHovered || isSelected) && (
               <img
                 src={imgSrc}
