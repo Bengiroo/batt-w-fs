@@ -2,7 +2,9 @@ import React from "react";
 import "./WinOverlay.css";
 
 export default function WinOverlay({ visible, balanceChange, multiplier, gridBounds, fading }) {
-    if (!visible || !gridBounds || balanceChange <= 0) return null;
+    if (!visible || !gridBounds) return null; // allow loss to show ❌
+
+    const isWin = balanceChange > 0;
 
     const style = {
         position: "absolute",
@@ -16,9 +18,15 @@ export default function WinOverlay({ visible, balanceChange, multiplier, gridBou
     return (
         <div className={`win-overlay ${fading ? "fade" : ""}`} style={style}>
             <div className="win-content">
-                <div className="win-title">WIN</div>
-                <div className="win-amount">${balanceChange.toFixed(2)}</div>
-                <div className="win-multiplier">{multiplier.toFixed(2)}x</div>
+                {isWin ? (
+                    <>
+                        <div className="win-title">WIN</div>
+                        <div className="win-amount">${balanceChange.toFixed(2)}</div>
+                        <div className="win-multiplier">{multiplier.toFixed(2)}x</div>
+                    </>
+                ) : (
+                    <div className="loss-x">❌</div>
+                )}
             </div>
         </div>
     );

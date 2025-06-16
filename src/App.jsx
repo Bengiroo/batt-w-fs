@@ -39,6 +39,7 @@ export default function App() {
   const [multiplier, setMultiplier] = useState(0);
   const [winVisible, setWinVisible] = useState(false);
   const [isFading, setIsFading] = useState(false);
+  const [wasWin, setWasWin] = useState(false);
   const gridWrapperRef = useRef(null);
   const [gridBounds, setGridBounds] = useState(null);
 
@@ -113,7 +114,8 @@ export default function App() {
       setBalance((b) => +(b + profit).toFixed(2));
       setWinAmount(profit);
       setMultiplier(payoutMultiplier);
-      setWinVisible(win);
+      setWinVisible(true);
+      setWasWin(win);
       setIsFading(false);
 
       if (mode === "offense") {
@@ -187,6 +189,7 @@ export default function App() {
             multiplier={multiplier}
             gridBounds={gridBounds}
             fading={isFading}
+            wasWin={wasWin}
           />
         )}
       </div>

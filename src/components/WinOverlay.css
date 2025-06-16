@@ -36,3 +36,9 @@
     font-weight: bold;
     color: cyan;
 }
+
+.loss-x {
+    font-size: 6vw;
+    color: red;
+    text-shadow: 0 0 10px red, 0 0 20px red;
+}
