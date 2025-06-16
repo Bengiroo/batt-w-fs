@@ -1,81 +1,94 @@
 import React from "react";
 
 export default function PanelControls({
-  onReset, onFire, onAnchor, balance, bet, setBet, mode, isPortrait
+  onReset, onFire, onAnchor,
+  balance, bet, setBet, mode, isPortrait
 }) {
   return (
     <div
       style={{
         display: "flex",
-        flexDirection: isPortrait ? "row" : "column",
-        justifyContent: "center",
+        flexDirection: isPortrait ? "column" : "column",
         alignItems: "center",
-        gap: isPortrait ? 12 : 20,
-        marginTop: isPortrait ? 16 : 0,
-        width: isPortrait ? "100vw" : "100%",
-        flexWrap: isPortrait ? "wrap" : "nowrap",
-        fontSize: 15,
-        textAlign: "center",
+        justifyContent: "flex-start",
+        width: "100%",
+        padding: 10,
+        gap: 16,
       }}
     >
-      {/* Reset */}
-      <button
-        style={{
-          background: "#ff3860",
-          color: "#fff",
-          border: "2px solid #ff5e7a",
-          borderRadius: 7,
-          padding: "7px 16px",
-          fontWeight: 700,
-          cursor: "pointer",
-          fontSize: 15,
-          boxShadow: "0 0 8px #ff5e7a88",
-        }}
-        onClick={onReset}
-      >
-        Reset
-      </button>
+      {/* Fire + Anchor Buttons */}
+      <div style={{ display: "flex", gap: 10 }}>
+        <button
+          onClick={onFire}
+          style={{
+            width: 60,
+            height: 60,
+            borderRadius: 7,
+            backgroundColor: "#ff0033",
+            border: "2px solid #ff5e7a",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 0 8px #ff5e7a88",
+            cursor: "pointer",
+          }}
+        >
+          <img src="/fire.png" alt="fire" style={{ width: 28, height: 28 }} />
+        </button>
 
-      {/* Anchor */}
-      <button
-        style={{
-          background: "#003344",
-          color: "#00ffee",
-          border: "2px solid #00ffee",
-          borderRadius: 7,
-          padding: "7px 16px",
-          fontWeight: 700,
-          cursor: "pointer",
-          fontSize: 15,
-          boxShadow: "0 0 8px #00ffee55",
-        }}
-        onClick={onAnchor}
-      >
-        Anchor
-      </button>
+        <button
+          onClick={onAnchor}
+          style={{
+            width: 60,
+            height: 60,
+            borderRadius: 7,
+            backgroundColor: "#00cc66",
+            border: "2px solid #00ffee",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 0 8px #00ffee55",
+            cursor: "pointer",
+          }}
+        >
+          <img src="/anchor.png" alt="anchor" style={{ width: 28, height: 28 }} />
+        </button>
+      </div>
 
-      {/* Fire */}
-      <button
-        style={{
-          background: "#2196f3",
-          color: "#fff",
-          border: "2px solid #33bbff",
-          borderRadius: 7,
-          padding: "7px 16px",
-          fontWeight: 700,
-          cursor: "pointer",
-          fontSize: 15,
-          boxShadow: "0 0 8px #33bbff88",
-        }}
-        onClick={onFire}
-      >
-        Fire
-      </button>
+      {/* Bet Input Area */}
+      <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ fontWeight: 600, fontSize: 14, textAlign: "center", color: "#00ffff" }}>Bet Amount</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <input
+            type="number"
+            value={bet}
+            onChange={(e) => setBet(Number(e.target.value))}
+            min={0}
+            max={balance}
+            style={{
+              flex: 1,
+              border: "3px solid #00ccff",
+              borderRadius: 6,
+              padding: "8px 12px",
+              fontSize: 16,
+              textAlign: "center",
+              backgroundColor: "#121624",
+              color: "#00ffff",
+              boxShadow: "0 0 6px #00ccff44",
+            }}
+          />
+          <div style={{ display: "flex", gap: 4 }}>
+            <button onClick={() => setBet(bet / 2)} style={miniBtn}>1/2</button>
+            <button onClick={() => setBet(bet * 2)} style={miniBtn}>2x</button>
+            <button onClick={() => setBet(balance)} style={miniBtn}>Max</button>
+          </div>
+        </div>
+      </div>
 
-      {/* Balance */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <span style={{ fontWeight: 700, fontSize: 14, color: "#00ffff" }}>Balance</span>
-        <span
+      {/* Balance Display */}
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontWeight: 700, fontSize: 12, color: "#00ffff" }}>Balance</div>
+        <div
           style={{
             fontWeight: 800,
             fontSize: 18,
@@ -83,32 +96,21 @@ export default function PanelControls({
             textShadow: "0 0 5px currentColor",
           }}
         >
-          {balance} 💰
-        </span>
-      </div>
-
-      {/* Bet */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <span style={{ fontWeight: 600, fontSize: 14 }}>Bet</span>
-        <input
-          type="number"
-          value={bet}
-          onChange={(e) => setBet(Number(e.target.value))}
-          min={0}
-          max={balance}
-          style={{
-            width: 70,
-            border: "1px solid #00ccff",
-            borderRadius: 6,
-            padding: "4px 10px",
-            fontSize: 15,
-            textAlign: "center",
-            backgroundColor: "#121624",
-            color: "#00ffff",
-            boxShadow: "0 0 6px #00ccff44",
-          }}
-        />
+          {balance.toFixed(2)} 💰
+        </div>
       </div>
     </div>
   );
 }
+
+const miniBtn = {
+  backgroundColor: "#1f2333",
+  border: "2px solid #00ccff",
+  color: "#00ffff",
+  fontWeight: 700,
+  fontSize: 13,
+  borderRadius: 5,
+  padding: "4px 8px",
+  cursor: "pointer",
+  boxShadow: "0 0 6px #00ccff44",
+};
