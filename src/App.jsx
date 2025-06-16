@@ -1,5 +1,4 @@
-// --- App.jsx (Updated for Win Hits) ---
-
+// --- App.jsx ---
 import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import axios from "axios";
@@ -15,6 +14,12 @@ import WinOverlay from "./components/WinOverlay";
 
 const GRID_SIZE = 10;
 
+function getRandomIndices(exclude = [], count = 1) {
+  const all = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => i).filter(i => !exclude.includes(i));
+  const shuffled = all.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
+
 export default function App() {
   const isPortrait = useOrientation();
   const [token, setToken] = useState(localStorage.getItem("token") || "");
@@ -24,15 +29,16 @@ export default function App() {
   const [sizeIdx, setSizeIdx] = useState(0);
   const [defenseSelected, setDefenseSelected] = useState(Array(GRID_SIZE * GRID_SIZE).fill(false));
   const [offenseSelected, setOffenseSelected] = useState(Array(GRID_SIZE * GRID_SIZE).fill(false));
+  const [enemyShipTiles, setEnemyShipTiles] = useState([]);
+  const [hitTiles, setHitTiles] = useState([]);
+  const [enemyMissiles, setEnemyMissiles] = useState([]);
+  const [enemyHits, setEnemyHits] = useState([]);
   const [balance, setBalance] = useState(500);
   const [bet, setBet] = useState(0);
   const [winAmount, setWinAmount] = useState(0);
   const [multiplier, setMultiplier] = useState(0);
   const [winVisible, setWinVisible] = useState(false);
   const [isFading, setIsFading] = useState(false);
-  const [enemyShipTiles, setEnemyShipTiles] = useState([]);
-  const [hitTiles, setHitTiles] = useState([]);
-
   const gridWrapperRef = useRef(null);
   const [gridBounds, setGridBounds] = useState(null);
 
@@ -78,12 +84,6 @@ export default function App() {
   const predictedMultiplier = winChance > 0 ? +(0.99 / winChance).toFixed(2) : 0;
   const winPercentage = (winChance * 100).toFixed(1);
 
-  const generateEnemyShipTiles = (exclude = []) => {
-    const allIndices = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => i).filter((i) => !exclude.includes(i));
-    const shuffled = allIndices.sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, 7); // 2+2+3 = 7 tiles
-  };
-
   const handleReset = () => {
     setSelected(Array(GRID_SIZE * GRID_SIZE).fill(false));
     setWinVisible(false);
@@ -92,6 +92,8 @@ export default function App() {
     setIsFading(false);
     setEnemyShipTiles([]);
     setHitTiles([]);
+    setEnemyMissiles([]);
+    setEnemyHits([]);
   };
 
   const handleFire = async () => {
@@ -107,6 +109,7 @@ export default function App() {
       });
 
       const { win, profit = 0, payoutMultiplier = 0 } = res.data;
+
       setBalance((b) => +(b + profit).toFixed(2));
       setWinAmount(profit);
       setMultiplier(payoutMultiplier);
@@ -114,16 +117,24 @@ export default function App() {
       setIsFading(false);
 
       if (mode === "offense") {
-        if (win) {
-          const selectedIndices = offenseSelected.map((val, idx) => val ? idx : -1).filter(i => i !== -1);
-          const hits = selectedIndices.sort(() => 0.5 - Math.random()).slice(0, 2);
-          setHitTiles(hits);
-          setEnemyShipTiles((prev) => prev.filter((idx) => !hits.includes(idx)));
-        } else {
-          const selectedIndices = offenseSelected.map((val, idx) => val ? idx : -1).filter(i => i !== -1);
-          setEnemyShipTiles(generateEnemyShipTiles(selectedIndices));
+        if (!win) {
+          const shipTiles = [
+            ...getRandomIndices(selected, 2),
+            ...getRandomIndices(selected, 2),
+            ...getRandomIndices(selected, 3),
+          ].slice(0, 7);
+          setEnemyShipTiles(shipTiles);
           setHitTiles([]);
+        } else {
+          const hits = getRandomIndices(selected, 2);
+          setHitTiles(hits);
+          setEnemyShipTiles((prev) => prev.filter((i) => !hits.includes(i)));
         }
+      } else if (mode === "defense") {
+        const missiles = getRandomIndices([], Math.floor(Math.random() * 2) + 2);
+        setEnemyMissiles(missiles);
+        const hits = missiles.filter((idx) => defenseSelected[idx]);
+        setEnemyHits(hits);
       }
 
       setTimeout(() => setIsFading(true), 5000);
@@ -140,17 +151,9 @@ export default function App() {
 
   return (
     <div className="app-wrapper">
-      <div
-        ref={gridWrapperRef}
-        className="grid-wrapper"
-        style={{ position: "relative", flex: "1 1 auto", justifyContent: "center" }}
-      >
-        <div className="fulfillment-slider-wrapper" style={{ display: "none" }}>
-          <FulfillmentSlider
-            value={selectedCount}
-            total={GRID_SIZE * GRID_SIZE}
-            mode={mode}
-          />
+      <div ref={gridWrapperRef} className="grid-wrapper" style={{ position: "relative", flex: "1 1 auto" }}>
+        <div style={{ display: "none" }}>
+          <FulfillmentSlider value={selectedCount} total={GRID_SIZE * GRID_SIZE} mode={mode} />
         </div>
 
         <TileGrid
@@ -161,6 +164,8 @@ export default function App() {
           selected={defenseSelected}
           setSelected={mode === "defense" ? setDefenseSelected : () => { }}
           imgSrc="/ship.png"
+          enemyMissiles={enemyMissiles}
+          enemyHits={enemyHits}
         />
         <TileGrid
           visible={mode === "offense"}
@@ -206,11 +211,7 @@ export default function App() {
             width: 120,
             alignSelf: "center",
           }}
-          onClick={() =>
-            setOrientation(
-              orientation === "horizontal" ? "vertical" : "horizontal"
-            )
-          }
+          onClick={() => setOrientation(orientation === "horizontal" ? "vertical" : "horizontal")}
         >
           Rotate: {orientation === "horizontal" ? "↔" : "↕"}
         </button>
@@ -229,12 +230,8 @@ export default function App() {
             boxShadow: "0 0 8px #0ff",
           }}
         >
-          <div>
-            🎯 <strong>Chance to Win:</strong> {winPercentage}%
-          </div>
-          <div>
-            💥 <strong>Multiplier:</strong> {predictedMultiplier}x
-          </div>
+          <div>🎯 <strong>Chance to Win:</strong> {winPercentage}%</div>
+          <div>💥 <strong>Multiplier:</strong> {predictedMultiplier}x</div>
         </div>
 
         <PanelControls

@@ -1,12 +1,11 @@
-// --- TileGrid.jsx (Final with hits and conditional rendering) ---
+// --- TileGrid.jsx (Defense & Offense Visual Fixes) ---
 
 import React, { useState, useRef, useEffect } from "react";
 
 const GRID_SIZE = 10;
 
 function getBrushIndices(centerRow, centerCol, width, height, orientation) {
-  let w = width,
-    h = height;
+  let w = width, h = height;
   if (orientation === "vertical") [w, h] = [h, w];
   const indices = [];
   const startRow = centerRow - Math.floor(h / 2);
@@ -32,7 +31,10 @@ export default function TileGrid({
   setSelected,
   imgSrc,
   enemyTiles = [],
-  hitTiles = []
+  hitTiles = [],
+  enemyMissiles = [],
+  enemyHits = [],
+  win = false
 }) {
   const [hoveredIndices, setHoveredIndices] = useState([]);
   const [isMouseDown, setIsMouseDown] = useState(false);
@@ -60,9 +62,7 @@ export default function TileGrid({
   const cellSize = size / GRID_SIZE;
 
   const handleMouseOver = (row, col) => {
-    setHoveredIndices(
-      getBrushIndices(row, col, brushSize.width, brushSize.height, orientation)
-    );
+    setHoveredIndices(getBrushIndices(row, col, brushSize.width, brushSize.height, orientation));
     if (isMouseDown) handlePaint(row, col);
   };
 
@@ -74,13 +74,7 @@ export default function TileGrid({
   const handleMouseUp = () => setIsMouseDown(false);
 
   const handlePaint = (row, col) => {
-    const indices = getBrushIndices(
-      row,
-      col,
-      brushSize.width,
-      brushSize.height,
-      orientation
-    );
+    const indices = getBrushIndices(row, col, brushSize.width, brushSize.height, orientation);
     setSelected((prev) => {
       const next = [...prev];
       indices.forEach((idx) => (next[idx] = true));
@@ -97,9 +91,7 @@ export default function TileGrid({
     const row = Math.floor(y / cellSize);
     if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE) {
       handlePaint(row, col);
-      setHoveredIndices(
-        getBrushIndices(row, col, brushSize.width, brushSize.height, orientation)
-      );
+      setHoveredIndices(getBrushIndices(row, col, brushSize.width, brushSize.height, orientation));
     }
   };
 
@@ -133,7 +125,8 @@ export default function TileGrid({
         const isHovered = hoveredIndices.includes(i);
         const isSelected = selected[i];
         const isEnemy = enemyTiles.includes(i);
-        const isHit = hitTiles.includes(i);
+        const isMissile = enemyMissiles.includes(i);
+        const isHit = enemyHits.includes(i);
 
         const baseColor = mode === "offense" ? "#1c0b0b" : "#0b1c1f";
         const hoverColor = mode === "offense" ? "#ff5560" : "#33bbff";
@@ -144,6 +137,11 @@ export default function TileGrid({
           : isHovered
             ? hoverColor
             : baseColor;
+
+        const showHit = mode === "offense" && win && hitTiles.includes(i);
+        const showMissile = mode === "defense" && !win && enemyMissiles.includes(i);
+        const showShipSink = mode === "defense" && !win && enemyHits.includes(i);
+        const showEnemyShip = mode === "offense" && !win && isEnemy;
 
         return (
           <div
@@ -161,7 +159,7 @@ export default function TileGrid({
             onMouseOut={handleMouseOut}
             onMouseDown={() => handleMouseDown(row, col)}
           >
-            {isHit ? (
+            {showHit && (
               <img
                 src="/hit.png"
                 alt="hit"
@@ -173,12 +171,46 @@ export default function TileGrid({
                   height: "100%",
                   pointerEvents: "none",
                   opacity: 1,
-                  userSelect: "none",
+                  filter: "drop-shadow(0 0 6px lime)",
+                }}
+                draggable={false}
+              />
+            )}
+            {showShipSink && (
+              <img
+                src="/yourshipsink.png"
+                alt="sink"
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  width: "100%",
+                  height: "100%",
+                  pointerEvents: "none",
+                  opacity: 1,
                   filter: "drop-shadow(0 0 6px red)",
                 }}
                 draggable={false}
               />
-            ) : isEnemy ? (
+            )}
+            {showMissile && (
+              <img
+                src="/enemy-missile.png"
+                alt="missile"
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  width: "100%",
+                  height: "100%",
+                  pointerEvents: "none",
+                  opacity: 0.95,
+                  filter: "drop-shadow(0 0 4px orange)",
+                }}
+                draggable={false}
+              />
+            )}
+            {showEnemyShip && (
               <img
                 src="/enemy-ship.png"
                 alt="enemy"
@@ -194,10 +226,11 @@ export default function TileGrid({
                 }}
                 draggable={false}
               />
-            ) : (isSelected || isHovered) && (
+            )}
+            {!showHit && !showShipSink && !showMissile && !showEnemyShip && (isHovered || isSelected) && (
               <img
                 src={imgSrc}
-                alt="brush"
+                alt=""
                 style={{
                   position: "absolute",
                   left: 0,
