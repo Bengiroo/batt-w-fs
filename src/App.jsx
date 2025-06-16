@@ -1,3 +1,4 @@
+// App.jsx
 import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import axios from "axios";
@@ -356,23 +357,6 @@ export default function App() {
           Rotate: {orientation === "horizontal" ? "↔" : "↕"}
         </button>
 
-        <div
-          style={{
-            background: "#001122",
-            border: "2px solid cyan",
-            borderRadius: 10,
-            padding: "10px 14px",
-            color: "#0ff",
-            fontFamily: "monospace",
-            fontSize: 14,
-            marginBottom: 12,
-            textAlign: "center",
-            boxShadow: "0 0 8px #0ff",
-          }}
-        >
-          <div>🎯 <strong>Chance to Win:</strong> {winPercentage}%</div>
-          <div>💥 <strong>Multiplier:</strong> {predictedMultiplier}x</div>
-        </div>
 
         <PanelControls
           onReset={handleReset}
@@ -384,6 +368,8 @@ export default function App() {
           mode={mode}
           isPortrait={isPortrait}
           canFire={canFire}
+          winPercentage={winPercentage}
+          predictedMultiplier={predictedMultiplier}
         />
       </div>
     </div>

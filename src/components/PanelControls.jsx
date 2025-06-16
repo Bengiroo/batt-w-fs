@@ -2,7 +2,8 @@ import React from "react";
 
 export default function PanelControls({
   onReset, onFire, onAnchor,
-  balance, bet, setBet, mode, isPortrait
+  balance, bet, setBet, mode, isPortrait,
+  winPercentage, predictedMultiplier
 }) {
   return (
     <div
@@ -14,6 +15,7 @@ export default function PanelControls({
         width: "100%",
         padding: 10,
         gap: 16,
+        height: "100%",
       }}
     >
       {/* Fire + Anchor Buttons */}
@@ -98,6 +100,26 @@ export default function PanelControls({
         >
           {balance.toFixed(2)} 💰
         </div>
+      </div>
+
+      {/* Stats at Bottom */}
+      <div
+        style={{
+          marginTop: "auto",
+          width: "100%",
+          background: "#001122",
+          border: "2px solid cyan",
+          borderRadius: 10,
+          padding: "10px 14px",
+          color: "#0ff",
+          fontFamily: "monospace",
+          fontSize: 14,
+          textAlign: "center",
+          boxShadow: "0 0 8px #0ff",
+        }}
+      >
+        <div>🎯 <strong>Chance to Win:</strong> {winPercentage}%</div>
+        <div>💥 <strong>Multiplier:</strong> {predictedMultiplier}x</div>
       </div>
     </div>
   );
