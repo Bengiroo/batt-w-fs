@@ -1,8 +1,8 @@
 import React from "react";
 import "./WinOverlay.css";
 
-export default function WinOverlay({ visible, amount, multiplier, gridBounds, fading }) {
-    if (!visible || !gridBounds) return null;
+export default function WinOverlay({ visible, balanceChange, multiplier, gridBounds, fading }) {
+    if (!visible || !gridBounds || balanceChange <= 0) return null;
 
     const style = {
         position: "absolute",
@@ -17,7 +17,7 @@ export default function WinOverlay({ visible, amount, multiplier, gridBounds, fa
         <div className={`win-overlay ${fading ? "fade" : ""}`} style={style}>
             <div className="win-content">
                 <div className="win-title">WIN</div>
-                <div className="win-amount">${amount.toFixed(2)}</div>
+                <div className="win-amount">${balanceChange.toFixed(2)}</div>
                 <div className="win-multiplier">{multiplier.toFixed(2)}x</div>
             </div>
         </div>

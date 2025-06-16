@@ -1,4 +1,3 @@
-// All imports remain the same...
 import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import axios from "axios";
@@ -94,15 +93,16 @@ export default function App() {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const { winAmount: result = 0, multiplier: multi = 0 } = res.data;
-      setBalance((b) => b - bet + result);
-      setWinAmount(result);
+      const { balanceChange = 0, multiplier: multi = 0, win } = res.data;
+
+      setBalance((b) => +(b + balanceChange).toFixed(2));
+      setWinAmount(balanceChange);
       setMultiplier(multi);
-      setWinVisible(true);
+      setWinVisible(win);
       setIsFading(false);
 
-      setTimeout(() => setIsFading(true), 3000);
-      setTimeout(() => setWinVisible(false), 5000);
+      setTimeout(() => setIsFading(true), 5000);
+      setTimeout(() => setWinVisible(false), 8000);
     } catch (err) {
       console.error("API error:", err.response?.data || err.message);
     }
@@ -115,37 +115,112 @@ export default function App() {
 
   return (
     <div className="app-wrapper">
-      <div ref={gridWrapperRef} className="grid-wrapper" style={{ position: "relative", flex: "1 1 auto", justifyContent: "center" }}>
+      <div
+        ref={gridWrapperRef}
+        className="grid-wrapper"
+        style={{ position: "relative", flex: "1 1 auto", justifyContent: "center" }}
+      >
         <div className="fulfillment-slider-wrapper">
-          <FulfillmentSlider value={selectedCount} total={GRID_SIZE * GRID_SIZE} mode={mode} />
+          <FulfillmentSlider
+            value={selectedCount}
+            total={GRID_SIZE * GRID_SIZE}
+            mode={mode}
+          />
         </div>
-        <TileGrid visible={mode === "defense"} mode="defense" brushSize={brushSize} orientation={orientation} selected={defenseSelected} setSelected={mode === "defense" ? setDefenseSelected : () => { }} imgSrc="/ship.png" />
-        <TileGrid visible={mode === "offense"} mode="offense" brushSize={brushSize} orientation={orientation} selected={offenseSelected} setSelected={mode === "offense" ? setOffenseSelected : () => { }} imgSrc="/missile.png" />
+
+        <TileGrid
+          visible={mode === "defense"}
+          mode="defense"
+          brushSize={brushSize}
+          orientation={orientation}
+          selected={defenseSelected}
+          setSelected={mode === "defense" ? setDefenseSelected : () => { }}
+          imgSrc="/ship.png"
+        />
+        <TileGrid
+          visible={mode === "offense"}
+          mode="offense"
+          brushSize={brushSize}
+          orientation={orientation}
+          selected={offenseSelected}
+          setSelected={mode === "offense" ? setOffenseSelected : () => { }}
+          imgSrc="/missile.png"
+        />
+
         {winVisible && gridBounds && (
-          <WinOverlay visible={true} amount={winAmount} multiplier={multiplier} gridBounds={gridBounds} fading={isFading} />
+          <WinOverlay
+            visible={true}
+            balanceChange={winAmount}
+            multiplier={multiplier}
+            gridBounds={gridBounds}
+            fading={isFading}
+          />
         )}
       </div>
+
       <div className="panel-wrapper">
-        <SizeSlider sizeOptions={sizeOptions} value={sizeIdx} setValue={setSizeIdx} isOffense={mode === "offense"} />
-        <button style={{ marginBottom: 12, padding: "7px 14px", fontSize: 15, background: "#ffd600", border: "1px solid #bbb", borderRadius: 7, cursor: "pointer", fontWeight: 600, width: 120, alignSelf: "center" }} onClick={() => setOrientation(orientation === "horizontal" ? "vertical" : "horizontal")}>
+        <SizeSlider
+          sizeOptions={sizeOptions}
+          value={sizeIdx}
+          setValue={setSizeIdx}
+          isOffense={mode === "offense"}
+        />
+
+        <button
+          style={{
+            marginBottom: 12,
+            padding: "7px 14px",
+            fontSize: 15,
+            background: "#ffd600",
+            border: "1px solid #bbb",
+            borderRadius: 7,
+            cursor: "pointer",
+            fontWeight: 600,
+            width: 120,
+            alignSelf: "center",
+          }}
+          onClick={() =>
+            setOrientation(
+              orientation === "horizontal" ? "vertical" : "horizontal"
+            )
+          }
+        >
           Rotate: {orientation === "horizontal" ? "↔" : "↕"}
         </button>
-        <div style={{
-          background: "#001122",
-          border: "2px solid cyan",
-          borderRadius: 10,
-          padding: "10px 14px",
-          color: "#0ff",
-          fontFamily: "monospace",
-          fontSize: 14,
-          marginBottom: 12,
-          textAlign: "center",
-          boxShadow: "0 0 8px #0ff",
-        }}>
-          <div>🎯 <strong>Chance to Win:</strong> {winPercentage}%</div>
-          <div>💥 <strong>Multiplier:</strong> {predictedMultiplier}x</div>
+
+        <div
+          style={{
+            background: "#001122",
+            border: "2px solid cyan",
+            borderRadius: 10,
+            padding: "10px 14px",
+            color: "#0ff",
+            fontFamily: "monospace",
+            fontSize: 14,
+            marginBottom: 12,
+            textAlign: "center",
+            boxShadow: "0 0 8px #0ff",
+          }}
+        >
+          <div>
+            🎯 <strong>Chance to Win:</strong> {winPercentage}%
+          </div>
+          <div>
+            💥 <strong>Multiplier:</strong> {predictedMultiplier}x
+          </div>
         </div>
-        <PanelControls onReset={handleReset} onFire={handleFire} onAnchor={handleAnchor} balance={balance} bet={bet} setBet={setBet} mode={mode} isPortrait={isPortrait} canFire={canFire} />
+
+        <PanelControls
+          onReset={handleReset}
+          onFire={handleFire}
+          onAnchor={handleAnchor}
+          balance={balance}
+          bet={bet}
+          setBet={setBet}
+          mode={mode}
+          isPortrait={isPortrait}
+          canFire={canFire}
+        />
       </div>
     </div>
   );
