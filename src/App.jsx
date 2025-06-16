@@ -1,3 +1,4 @@
+// All imports remain the same...
 import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import axios from "axios";
@@ -24,16 +25,15 @@ export default function App() {
   const [offenseSelected, setOffenseSelected] = useState(Array(GRID_SIZE * GRID_SIZE).fill(false));
   const [balance, setBalance] = useState(500);
   const [bet, setBet] = useState(0);
-  const [winAmount, setWinAmount] = useState(null);
-  const [multiplier, setMultiplier] = useState(null);
+  const [winAmount, setWinAmount] = useState(0);
+  const [multiplier, setMultiplier] = useState(0);
   const [winVisible, setWinVisible] = useState(false);
+  const [isFading, setIsFading] = useState(false);
   const gridWrapperRef = useRef(null);
   const [gridBounds, setGridBounds] = useState(null);
 
   useEffect(() => {
-    if (token) {
-      localStorage.setItem("token", token);
-    }
+    if (token) localStorage.setItem("token", token);
   }, [token]);
 
   useEffect(() => {
@@ -44,8 +44,7 @@ export default function App() {
           headers: { Authorization: `Bearer ${token}` },
         });
         setValidated(true);
-      } catch (err) {
-        console.warn("Server unreachable or invalid token. Logging out.");
+      } catch {
         localStorage.removeItem("token");
         setToken("");
         setValidated(false);
@@ -55,31 +54,13 @@ export default function App() {
   }, [token]);
 
   useEffect(() => {
-    if (gridWrapperRef.current) {
-      const bounds = gridWrapperRef.current.getBoundingClientRect();
-      setGridBounds(bounds);
-    }
+    setTimeout(() => {
+      if (gridWrapperRef.current) {
+        const bounds = gridWrapperRef.current.getBoundingClientRect();
+        setGridBounds(bounds);
+      }
+    }, 100);
   }, [orientation, selectedMode]);
-
-  useEffect(() => {
-    // Force win overlay for test
-    setWinAmount(250);
-    setMultiplier(2.5);
-    setWinVisible(true);
-  }, []);
-
-  if (!token || !validated) {
-    return <LoginScreen onLogin={setToken} />;
-  }
-
-  if (!selectedMode) {
-    return (
-      <ModeSelectScreen
-        isPortrait={isPortrait}
-        onSelectMode={setSelectedMode}
-      />
-    );
-  }
 
   const mode = selectedMode;
   const sizeOptions = mode === "offense" ? missileSizeOptions : shipSizeOptions;
@@ -89,11 +70,16 @@ export default function App() {
   const selectedCount = selected.filter(Boolean).length;
   const canFire = selectedCount > 0 && selectedCount < GRID_SIZE * GRID_SIZE;
 
+  const winChance = mode === "offense" ? selectedCount / 100 : 1 - selectedCount / 100;
+  const predictedMultiplier = winChance > 0 ? +(0.99 / winChance).toFixed(2) : 0;
+  const winPercentage = (winChance * 100).toFixed(1);
+
   const handleReset = () => {
     setSelected(Array(GRID_SIZE * GRID_SIZE).fill(false));
     setWinVisible(false);
-    setWinAmount(null);
-    setMultiplier(null);
+    setWinAmount(0);
+    setMultiplier(0);
+    setIsFading(false);
   };
 
   const handleFire = async () => {
@@ -103,106 +89,63 @@ export default function App() {
     const gameMode = mode === "defense" ? "over" : "under";
     const payload = { mode: gameMode, amount: bet, targetNumber };
 
-    console.log("📡 Sending to API:", payload);
-
     try {
       const res = await axios.post("http://localhost:4000/dice/roll", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setBalance((b) => b - bet);
-      console.log("✅ API response:", res.data);
-      const { winAmount: result, multiplier: multi } = res.data;
+      const { winAmount: result = 0, multiplier: multi = 0 } = res.data;
+      setBalance((b) => b - bet + result);
+      setWinAmount(result);
+      setMultiplier(multi);
+      setWinVisible(true);
+      setIsFading(false);
 
-      if (result && multi) {
-        setWinAmount(result);
-        setMultiplier(multi);
-        setWinVisible(true);
-        setTimeout(() => setWinVisible(false), 3000);
-      }
+      setTimeout(() => setIsFading(true), 3000);
+      setTimeout(() => setWinVisible(false), 5000);
     } catch (err) {
-      console.error("❌ API error:", err.response?.data || err.message);
+      console.error("API error:", err.response?.data || err.message);
     }
   };
 
-  const handleAnchor = () => {
-    alert("Anchor set!");
-  };
+  const handleAnchor = () => alert("Anchor set!");
+
+  if (!token || !validated) return <LoginScreen onLogin={setToken} />;
+  if (!selectedMode) return <ModeSelectScreen isPortrait={isPortrait} onSelectMode={setSelectedMode} />;
 
   return (
     <div className="app-wrapper">
       <div ref={gridWrapperRef} className="grid-wrapper" style={{ position: "relative", flex: "1 1 auto", justifyContent: "center" }}>
         <div className="fulfillment-slider-wrapper">
-          <FulfillmentSlider
-            value={selectedCount}
-            total={GRID_SIZE * GRID_SIZE}
-            mode={mode}
-          />
+          <FulfillmentSlider value={selectedCount} total={GRID_SIZE * GRID_SIZE} mode={mode} />
         </div>
-        <TileGrid
-          visible={mode === "defense"}
-          mode="defense"
-          brushSize={brushSize}
-          orientation={orientation}
-          selected={defenseSelected}
-          setSelected={mode === "defense" ? setDefenseSelected : () => { }}
-          imgSrc="/ship.png"
-        />
-        <TileGrid
-          visible={mode === "offense"}
-          mode="offense"
-          brushSize={brushSize}
-          orientation={orientation}
-          selected={offenseSelected}
-          setSelected={mode === "offense" ? setOffenseSelected : () => { }}
-          imgSrc="/missile.png"
-        />
-        {winVisible && (
-          <WinOverlay
-            visible={true}
-            amount={winAmount}
-            multiplier={multiplier}
-            gridBounds={gridBounds}
-          />
+        <TileGrid visible={mode === "defense"} mode="defense" brushSize={brushSize} orientation={orientation} selected={defenseSelected} setSelected={mode === "defense" ? setDefenseSelected : () => { }} imgSrc="/ship.png" />
+        <TileGrid visible={mode === "offense"} mode="offense" brushSize={brushSize} orientation={orientation} selected={offenseSelected} setSelected={mode === "offense" ? setOffenseSelected : () => { }} imgSrc="/missile.png" />
+        {winVisible && gridBounds && (
+          <WinOverlay visible={true} amount={winAmount} multiplier={multiplier} gridBounds={gridBounds} fading={isFading} />
         )}
       </div>
       <div className="panel-wrapper">
-        <SizeSlider
-          sizeOptions={sizeOptions}
-          value={sizeIdx}
-          setValue={setSizeIdx}
-          isOffense={mode === "offense"}
-        />
-        <button
-          style={{
-            marginBottom: 12,
-            padding: "7px 14px",
-            fontSize: 15,
-            background: "#ffd600",
-            border: "1px solid #bbb",
-            borderRadius: 7,
-            cursor: "pointer",
-            fontWeight: 600,
-            width: 120,
-            alignSelf: "center",
-          }}
-          onClick={() =>
-            setOrientation(orientation === "horizontal" ? "vertical" : "horizontal")
-          }
-        >
+        <SizeSlider sizeOptions={sizeOptions} value={sizeIdx} setValue={setSizeIdx} isOffense={mode === "offense"} />
+        <button style={{ marginBottom: 12, padding: "7px 14px", fontSize: 15, background: "#ffd600", border: "1px solid #bbb", borderRadius: 7, cursor: "pointer", fontWeight: 600, width: 120, alignSelf: "center" }} onClick={() => setOrientation(orientation === "horizontal" ? "vertical" : "horizontal")}>
           Rotate: {orientation === "horizontal" ? "↔" : "↕"}
         </button>
-        <PanelControls
-          onReset={handleReset}
-          onFire={handleFire}
-          onAnchor={handleAnchor}
-          balance={balance}
-          bet={bet}
-          setBet={setBet}
-          mode={mode}
-          isPortrait={isPortrait}
-          canFire={canFire}
-        />
+        <div style={{
+          background: "#001122",
+          border: "2px solid cyan",
+          borderRadius: 10,
+          padding: "10px 14px",
+          color: "#0ff",
+          fontFamily: "monospace",
+          fontSize: 14,
+          marginBottom: 12,
+          textAlign: "center",
+          boxShadow: "0 0 8px #0ff",
+        }}>
+          <div>🎯 <strong>Chance to Win:</strong> {winPercentage}%</div>
+          <div>💥 <strong>Multiplier:</strong> {predictedMultiplier}x</div>
+        </div>
+        <PanelControls onReset={handleReset} onFire={handleFire} onAnchor={handleAnchor} balance={balance} bet={bet} setBet={setBet} mode={mode} isPortrait={isPortrait} canFire={canFire} />
       </div>
     </div>
   );

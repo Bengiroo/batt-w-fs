@@ -1,34 +1,38 @@
 .win-overlay {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: 20vmin;
-    height: 20vmin;
-    transform: translate(-50%, -50%);
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 3px solid #00f6ff;
+    box-shadow: 0 0 20px #0f0, 0 0 40px #00f6ff;
+    z-index: 9999;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
     pointer-events: none;
-    z-index: 999;
+    opacity: 1;
+    transition: opacity 2s ease-in-out;
 }
 
-.win-box {
+.win-overlay.fade {
+    opacity: 0;
+}
+
+.win-content {
     text-align: center;
-    color: white;
-    font-family: "Share Tech Mono", monospace;
-    text-shadow: 0 0 6px white, 0 0 10px #0ff;
+    color: lime;
+    text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+}
+
+.win-title {
+    font-size: 3vw;
+    font-weight: bold;
 }
 
 .win-amount {
-    font-size: 3vmin;
+    font-size: 1.8vw;
     font-weight: bold;
 }
 
 .win-multiplier {
-    font-size: 2vmin;
-    margin-top: 0.5vmin;
+    font-size: 1.5vw;
+    font-weight: bold;
+    color: cyan;
 }

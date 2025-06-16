@@ -10,15 +10,10 @@ body,
   background-color: #0a0e1a;
   font-family: 'Share Tech Mono', monospace;
   color: #00ffcc;
+  overflow: hidden;
 }
 
-/* Global UI Foundation */
-body {
-  background: #0a0e1a;
-  color: #00ffcc;
-  font-family: 'Share Tech Mono', monospace;
-}
-
+/* Main app layout */
 .app-wrapper {
   display: flex;
   flex-direction: column;
@@ -26,7 +21,6 @@ body {
   justify-content: center;
   width: 100vw;
   height: 100vh;
-  overflow: hidden;
   background: radial-gradient(circle at center, #0a0e1a 60%, #000814 100%);
   box-shadow: inset 0 0 80px rgba(0, 255, 255, 0.06);
 }
@@ -38,31 +32,40 @@ body {
   }
 }
 
+/* Grid wrapper (square) */
 .grid-wrapper {
-  display: grid;
-  box-sizing: border-box;
-  padding-top: 0;
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
+  width: 100vw;
+  height: 100vw;
+  max-width: 100vh;
+  max-height: 100vh;
   background-color: #00131f;
-  box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.2);
   border-right: 2px solid #00ccff;
+  box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.2);
 }
 
-@media (min-width: 801px) {
-  .grid-wrapper {
-    min-width: 320px;
-    padding: 0;
-    margin: 0;
-  }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-template-rows: repeat(10, 1fr);
+  width: 100%;
+  height: 100%;
+  background-color: blue;
+  border: 2px solid red;
+  position: relative;
 }
 
+.grid-cell {
+  border: 1px solid red;
+}
+
+/* Panel wrapper */
 .panel-wrapper {
   width: 100vw;
   background: #121624;
   padding-bottom: 3vw;
-  padding-top: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -74,21 +77,19 @@ body {
   .panel-wrapper {
     min-width: 220px;
     max-width: 380px;
-    width: 100%;
     height: 100vh;
     align-items: flex-start;
     padding: 32px 18px;
-    border-radius: 0;
   }
 }
 
+/* Fulfillment bar (disabled by default) */
 .fulfillment-slider-wrapper {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   padding: 6px;
-  text-align: center;
   font-size: 13px;
   font-weight: bold;
   color: #00ffff;
@@ -104,7 +105,7 @@ body {
   }
 }
 
-/* Mode Select Fullscreen Overlay */
+/* Mode select screen */
 .mode-select-bg {
   width: 100vw;
   height: 100vh;
@@ -182,7 +183,7 @@ body {
   transform: scale(0.98);
 }
 
-/* Inputs and buttons */
+/* Input / Button base */
 input,
 button {
   font-family: 'Share Tech Mono', monospace;
@@ -221,58 +222,42 @@ button:hover {
   box-shadow: 0 0 12px #00ffcc99;
 }
 
-html,
-body,
-#root {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-}
-
-.grid-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vw;
-  /* Make it a square grid */
-  max-height: 100vh;
-  max-width: 100vh;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  grid-template-rows: repeat(10, 1fr);
-  width: 100%;
-  height: 100%;
-  background-color: blue;
-  position: relative;
-  border: 2px solid red;
-}
-
-.grid-cell {
-  border: 1px solid red;
-}
-
+/* ✅ Win Overlay */
 .win-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 60%;
-  height: 60%;
+  background: rgba(255, 255, 255, 0.15);
+  border: 3px solid #00f6ff;
+  box-shadow: 0 0 20px #0f0, 0 0 40px #00f6ff;
+  z-index: 9999;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 5vw;
-  font-weight: bold;
-  color: lime;
-  background: rgba(255, 255, 255, 0.2);
-  border: 3px solid cyan;
-  box-shadow: 0 0 20px lime, 0 0 40px cyan;
-  z-index: 9999;
   pointer-events: none;
+  opacity: 1;
+  transition: opacity 2s ease-in-out;
+}
+
+.win-overlay.fade {
+  opacity: 0;
+}
+
+.win-content {
+  text-align: center;
+  color: lime;
+  text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+}
+
+.win-title {
+  font-size: 3vw;
+  font-weight: bold;
+}
+
+.win-amount {
+  font-size: 1.8vw;
+  font-weight: bold;
+}
+
+.win-multiplier {
+  font-size: 1.5vw;
+  font-weight: bold;
+  color: cyan;
 }
