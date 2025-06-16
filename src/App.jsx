@@ -118,23 +118,22 @@ export default function App() {
 
       if (mode === "offense") {
         if (!win) {
-          const shipTiles = [
-            ...getRandomIndices(selected, 2),
-            ...getRandomIndices(selected, 2),
-            ...getRandomIndices(selected, 3),
-          ].slice(0, 7);
-          setEnemyShipTiles(shipTiles);
+          setEnemyShipTiles(getRandomIndices(offenseSelected, 7));
           setHitTiles([]);
         } else {
-          const hits = getRandomIndices(selected, 2);
+          const hits = getRandomIndices(offenseSelected, 2);
           setHitTiles(hits);
           setEnemyShipTiles((prev) => prev.filter((i) => !hits.includes(i)));
         }
       } else if (mode === "defense") {
-        const missiles = getRandomIndices([], Math.floor(Math.random() * 2) + 2);
-        setEnemyMissiles(missiles);
-        const hits = missiles.filter((idx) => defenseSelected[idx]);
-        setEnemyHits(hits);
+        if (!win) {
+          const missiles = getRandomIndices([], Math.floor(Math.random() * 2) + 2);
+          setEnemyMissiles(missiles);
+          setEnemyHits(missiles.filter((i) => defenseSelected[i]));
+        } else {
+          setEnemyMissiles(getRandomIndices(defenseSelected, 2));
+          setEnemyHits([]);
+        }
       }
 
       setTimeout(() => setIsFading(true), 5000);
@@ -162,10 +161,11 @@ export default function App() {
           brushSize={brushSize}
           orientation={orientation}
           selected={defenseSelected}
-          setSelected={mode === "defense" ? setDefenseSelected : () => { }}
-          imgSrc="/ship.png"
+          setSelected={setDefenseSelected}
+          imgSrc="/5.png"
           enemyMissiles={enemyMissiles}
           enemyHits={enemyHits}
+          win={winVisible}
         />
         <TileGrid
           visible={mode === "offense"}
@@ -173,10 +173,11 @@ export default function App() {
           brushSize={brushSize}
           orientation={orientation}
           selected={offenseSelected}
-          setSelected={mode === "offense" ? setOffenseSelected : () => { }}
-          imgSrc="/missile.png"
+          setSelected={setOffenseSelected}
+          imgSrc="/6.png"
           enemyTiles={enemyShipTiles}
           hitTiles={hitTiles}
+          win={winVisible}
         />
 
         {winVisible && gridBounds && (
