@@ -1,9 +1,12 @@
+// --- TileGrid.jsx (Final with hits and conditional rendering) ---
+
 import React, { useState, useRef, useEffect } from "react";
 
 const GRID_SIZE = 10;
 
 function getBrushIndices(centerRow, centerCol, width, height, orientation) {
-  let w = width, h = height;
+  let w = width,
+    h = height;
   if (orientation === "vertical") [w, h] = [h, w];
   const indices = [];
   const startRow = centerRow - Math.floor(h / 2);
@@ -27,13 +30,14 @@ export default function TileGrid({
   orientation,
   selected,
   setSelected,
-  imgSrc
+  imgSrc,
+  enemyTiles = [],
+  hitTiles = []
 }) {
   const [hoveredIndices, setHoveredIndices] = useState([]);
   const [isMouseDown, setIsMouseDown] = useState(false);
   const gridRef = useRef();
 
-  // Responsive square sizing
   const [size, setSize] = useState(300);
   useEffect(() => {
     function updateSize() {
@@ -56,21 +60,27 @@ export default function TileGrid({
   const cellSize = size / GRID_SIZE;
 
   const handleMouseOver = (row, col) => {
-    setHoveredIndices(getBrushIndices(row, col, brushSize.width, brushSize.height, orientation));
+    setHoveredIndices(
+      getBrushIndices(row, col, brushSize.width, brushSize.height, orientation)
+    );
     if (isMouseDown) handlePaint(row, col);
   };
 
   const handleMouseOut = () => setHoveredIndices([]);
-
   const handleMouseDown = (row, col) => {
     setIsMouseDown(true);
     handlePaint(row, col);
   };
-
   const handleMouseUp = () => setIsMouseDown(false);
 
   const handlePaint = (row, col) => {
-    const indices = getBrushIndices(row, col, brushSize.width, brushSize.height, orientation);
+    const indices = getBrushIndices(
+      row,
+      col,
+      brushSize.width,
+      brushSize.height,
+      orientation
+    );
     setSelected((prev) => {
       const next = [...prev];
       indices.forEach((idx) => (next[idx] = true));
@@ -87,7 +97,9 @@ export default function TileGrid({
     const row = Math.floor(y / cellSize);
     if (row >= 0 && row < GRID_SIZE && col >= 0 && col < GRID_SIZE) {
       handlePaint(row, col);
-      setHoveredIndices(getBrushIndices(row, col, brushSize.width, brushSize.height, orientation));
+      setHoveredIndices(
+        getBrushIndices(row, col, brushSize.width, brushSize.height, orientation)
+      );
     }
   };
 
@@ -120,6 +132,8 @@ export default function TileGrid({
         const col = i % GRID_SIZE;
         const isHovered = hoveredIndices.includes(i);
         const isSelected = selected[i];
+        const isEnemy = enemyTiles.includes(i);
+        const isHit = hitTiles.includes(i);
 
         const baseColor = mode === "offense" ? "#1c0b0b" : "#0b1c1f";
         const hoverColor = mode === "offense" ? "#ff5560" : "#33bbff";
@@ -130,8 +144,6 @@ export default function TileGrid({
           : isHovered
             ? hoverColor
             : baseColor;
-
-        const showImg = isHovered || isSelected;
 
         return (
           <div
@@ -149,10 +161,43 @@ export default function TileGrid({
             onMouseOut={handleMouseOut}
             onMouseDown={() => handleMouseDown(row, col)}
           >
-            {showImg && (
+            {isHit ? (
+              <img
+                src="/hit.png"
+                alt="hit"
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  width: "100%",
+                  height: "100%",
+                  pointerEvents: "none",
+                  opacity: 1,
+                  userSelect: "none",
+                  filter: "drop-shadow(0 0 6px red)",
+                }}
+                draggable={false}
+              />
+            ) : isEnemy ? (
+              <img
+                src="/enemy-ship.png"
+                alt="enemy"
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  width: "100%",
+                  height: "100%",
+                  pointerEvents: "none",
+                  opacity: 0.9,
+                  filter: "drop-shadow(0 0 6px red)",
+                }}
+                draggable={false}
+              />
+            ) : (isSelected || isHovered) && (
               <img
                 src={imgSrc}
-                alt=""
+                alt="brush"
                 style={{
                   position: "absolute",
                   left: 0,

@@ -1,3 +1,5 @@
+// --- App.jsx (Updated for Win Hits) ---
+
 import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import axios from "axios";
@@ -28,6 +30,9 @@ export default function App() {
   const [multiplier, setMultiplier] = useState(0);
   const [winVisible, setWinVisible] = useState(false);
   const [isFading, setIsFading] = useState(false);
+  const [enemyShipTiles, setEnemyShipTiles] = useState([]);
+  const [hitTiles, setHitTiles] = useState([]);
+
   const gridWrapperRef = useRef(null);
   const [gridBounds, setGridBounds] = useState(null);
 
@@ -73,12 +78,20 @@ export default function App() {
   const predictedMultiplier = winChance > 0 ? +(0.99 / winChance).toFixed(2) : 0;
   const winPercentage = (winChance * 100).toFixed(1);
 
+  const generateEnemyShipTiles = (exclude = []) => {
+    const allIndices = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => i).filter((i) => !exclude.includes(i));
+    const shuffled = allIndices.sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 7); // 2+2+3 = 7 tiles
+  };
+
   const handleReset = () => {
     setSelected(Array(GRID_SIZE * GRID_SIZE).fill(false));
     setWinVisible(false);
     setWinAmount(0);
     setMultiplier(0);
     setIsFading(false);
+    setEnemyShipTiles([]);
+    setHitTiles([]);
   };
 
   const handleFire = async () => {
@@ -89,21 +102,29 @@ export default function App() {
     const payload = { mode: gameMode, amount: bet, targetNumber };
 
     try {
-      console.log("Sending payload:", payload);
-
       const res = await axios.post("http://localhost:4000/dice/roll", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const { win, profit = 0, payoutMultiplier = 0 } = res.data;
-
-      console.log("ROLL RESPONSE:", res.data);
-
       setBalance((b) => +(b + profit).toFixed(2));
       setWinAmount(profit);
       setMultiplier(payoutMultiplier);
       setWinVisible(win);
       setIsFading(false);
+
+      if (mode === "offense") {
+        if (win) {
+          const selectedIndices = offenseSelected.map((val, idx) => val ? idx : -1).filter(i => i !== -1);
+          const hits = selectedIndices.sort(() => 0.5 - Math.random()).slice(0, 2);
+          setHitTiles(hits);
+          setEnemyShipTiles((prev) => prev.filter((idx) => !hits.includes(idx)));
+        } else {
+          const selectedIndices = offenseSelected.map((val, idx) => val ? idx : -1).filter(i => i !== -1);
+          setEnemyShipTiles(generateEnemyShipTiles(selectedIndices));
+          setHitTiles([]);
+        }
+      }
 
       setTimeout(() => setIsFading(true), 5000);
       setTimeout(() => setWinVisible(false), 8000);
@@ -124,7 +145,7 @@ export default function App() {
         className="grid-wrapper"
         style={{ position: "relative", flex: "1 1 auto", justifyContent: "center" }}
       >
-        <div className="fulfillment-slider-wrapper">
+        <div className="fulfillment-slider-wrapper" style={{ display: "none" }}>
           <FulfillmentSlider
             value={selectedCount}
             total={GRID_SIZE * GRID_SIZE}
@@ -149,6 +170,8 @@ export default function App() {
           selected={offenseSelected}
           setSelected={mode === "offense" ? setOffenseSelected : () => { }}
           imgSrc="/missile.png"
+          enemyTiles={enemyShipTiles}
+          hitTiles={hitTiles}
         />
 
         {winVisible && gridBounds && (
