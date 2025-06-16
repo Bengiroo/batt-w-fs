@@ -89,15 +89,19 @@ export default function App() {
     const payload = { mode: gameMode, amount: bet, targetNumber };
 
     try {
+      console.log("Sending payload:", payload);
+
       const res = await axios.post("http://localhost:4000/dice/roll", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      const { balanceChange = 0, multiplier: multi = 0, win } = res.data;
+      const { win, profit = 0, payoutMultiplier = 0 } = res.data;
 
-      setBalance((b) => +(b + balanceChange).toFixed(2));
-      setWinAmount(balanceChange);
-      setMultiplier(multi);
+      console.log("ROLL RESPONSE:", res.data);
+
+      setBalance((b) => +(b + profit).toFixed(2));
+      setWinAmount(profit);
+      setMultiplier(payoutMultiplier);
       setWinVisible(win);
       setIsFading(false);
 
