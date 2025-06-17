@@ -12,7 +12,7 @@ export default function WinOverlay({ visible, balanceChange, multiplier, gridBou
         top: "50%",
         transform: "translate(-50%, -50%)",
         width: gridBounds.width * 0.30,
-        height: gridBounds.height * 0.28,
+        height: gridBounds.height * 0.18,
         zIndex: 9999,
     };
 

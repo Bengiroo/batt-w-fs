@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom"; // ✅ NEW
+import { Link, useLocation } from "react-router-dom";
 import "./App.css";
 import axios from "axios";
 import { shipSizeOptions, missileSizeOptions } from "./sizeOptions";
@@ -113,7 +113,7 @@ function pickRandomLineBlocks(allowedIndices, maxTiles = 5) {
 
 export default function App() {
   const isPortrait = useOrientation();
-  const location = useLocation(); // ✅ Get current path
+  const location = useLocation();
   const initialBalance = 500;
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [validated, setValidated] = useState(false);
@@ -196,10 +196,14 @@ export default function App() {
     const gameMode = mode === "defense" ? "over" : "under";
     const payload = { mode: gameMode, amount: bet, targetNumber };
 
+    console.log("📤 Payload Sent:", payload); // Log payload
+
     try {
       const res = await axios.post("http://localhost:4000/dice/roll", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      console.log("📥 Response Received:", res.data); // Log response
 
       const { win, profit = 0, payoutMultiplier = 0 } = res.data;
 
@@ -237,7 +241,7 @@ export default function App() {
         }
       }
     } catch (err) {
-      console.error("API error:", err.response?.data || err.message);
+      console.error("❌ API error:", err.response?.data || err.message);
     }
   };
 
@@ -248,7 +252,6 @@ export default function App() {
 
   return (
     <div className="app-wrapper">
-      {/* Floating Navigation Links */}
       {location.pathname !== "/dashboard" && (
         <Link to="/dashboard" style={floatingLinkStyle}>📊 Dashboard</Link>
       )}
@@ -257,12 +260,10 @@ export default function App() {
       )}
 
       <div ref={gridWrapperRef} className="grid-wrapper" style={{ position: "relative", flex: "1 1 auto" }}>
-        {/* Hidden FulfillmentSlider */}
         <div style={{ display: "none" }}>
           <FulfillmentSlider value={selectedCount} total={GRID_SIZE * GRID_SIZE} mode={mode} />
         </div>
 
-        {/* Tile Grids */}
         <TileGrid
           visible={mode === "defense"}
           mode="defense"
@@ -343,7 +344,6 @@ export default function App() {
   );
 }
 
-// 💡 Reusable neon link style
 const floatingLinkStyle = {
   position: "fixed",
   top: 12,
