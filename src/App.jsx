@@ -345,11 +345,11 @@ export default function App() {
           />
           {orientation === "horizontal" ? "↔" : "↕"}
         </button>
-
         <PanelControls
           onReset={handleReset}
           onFire={handleFire}
           onAnchor={handleAnchor}
+          onModeToggle={() => setSelectedMode(mode === "offense" ? "defense" : "offense")} // 👈 Toggle mode
           balance={balance}
           bet={bet}
           setBet={setBet}
@@ -359,6 +359,7 @@ export default function App() {
           winPercentage={winPercentage}
           predictedMultiplier={predictedMultiplier}
         />
+
       </div>
     </div>
   );

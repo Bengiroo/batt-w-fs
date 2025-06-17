@@ -20,34 +20,26 @@ export default function PanelControls({
       }}
     >
       {/* Top Buttons Row */}
-      <div style={{ display: "flex", gap: 10 }}>
-        <button
-          onClick={onReset}
-          style={{ ...iconBtnStyle, backgroundColor: "#444", border: "2px solid #999" }}
-        >
-          🔁
-        </button>
-
-        <button
-          onClick={onModeToggle}
-          style={{ ...iconBtnStyle, backgroundColor: "#1f2333", border: "2px solid #00ccff" }}
-        >
-          {mode === "offense" ? "🛡" : "🔥"}
-        </button>
-
-        <button
-          onClick={onAnchor}
-          style={{ ...iconBtnStyle, backgroundColor: "#00cc66", border: "2px solid #00ffee" }}
-        >
-          <img src="/anchor.png" alt="anchor" style={{ width: 28, height: 28 }} />
-        </button>
-
-        <button
-          onClick={onFire}
-          style={{ ...iconBtnStyle, backgroundColor: "#ff0033", border: "2px solid #ff5e7a" }}
-        >
-          <img src="/fire.png" alt="fire" style={{ width: 28, height: 28 }} />
-        </button>
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        {[
+          { label: "Reset", icon: "🔁", onClick: onReset, style: { backgroundColor: "#444", border: "2px solid #999" } },
+          { label: "Mode", icon: mode === "offense" ? "🛡" : "🔥", onClick: onModeToggle, style: { backgroundColor: "#1f2333", border: "2px solid #00ccff" } },
+          { label: "Anchor", icon: <img src="/anchor.png" alt="anchor" style={{ width: 28, height: 28 }} />, onClick: onAnchor, style: { backgroundColor: "#00cc66", border: "2px solid #00ffee" } },
+          { label: "Fire", icon: <img src="/fire.png" alt="fire" style={{ width: 28, height: 28 }} />, onClick: onFire, style: { backgroundColor: "#ff0033", border: "2px solid #ff5e7a" } },
+        ].map(({ label, icon, onClick, style }, idx) => (
+          <div key={idx} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+            <div style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#fff",
+              textShadow: "0 0 6px #ffffffaa",
+              marginBottom: 4
+            }}>{label}</div>
+            <button onClick={onClick} style={{ ...iconBtnStyle, ...style }}>
+              {icon}
+            </button>
+          </div>
+        ))}
       </div>
 
       {/* Bet Input Area */}
