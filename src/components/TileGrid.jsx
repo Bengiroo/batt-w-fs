@@ -27,7 +27,6 @@ export default function TileGrid({
   orientation,
   selected,
   setSelected,
-  imgSrc,
   enemyTiles = [],
   hitTiles = [],
   enemyMissiles = [],
@@ -127,57 +126,51 @@ export default function TileGrid({
         const isMissile = enemyMissiles.includes(i);
         const isEnemyHit = enemyHits.includes(i);
 
-        const baseColor = mode === "offense" ? "#1c0b0b" : "#0b1c1f";
-        const hoverColor = mode === "offense" ? "#ff5560" : "#33bbff";
-        const activeColor = mode === "offense" ? "#ff1a40" : "#00ccff";
-
-        const tileColor = isSelected
-          ? activeColor
-          : isHovered
-            ? hoverColor
-            : baseColor;
-
-        // Show rules:
-        // Offense:
-        //   Win: show 1.png on selected+hit, 2.png on unselected+enemyTile
-        //   Loss: 1.png never, 2.png on unselected+enemyTile
-        // Defense:
-        //   Win: 3.png on unselected+missile (never selected, never 4.png)
-        //   Loss: 3.png on unselected+missile, 4.png on selected+enemyHit
-
         const show1 = mode === "offense" && win && isSelected && isHit;
         const show2 = mode === "offense" && !isSelected && isEnemyTile;
         const show3 = mode === "defense" && !isSelected && isMissile;
         const show4 = mode === "defense" && !win && isSelected && isEnemyHit;
 
+        const bgColor = mode === "offense" ? "#450000" : "#001144";
+        const glowColor = mode === "offense" ? "#ff0033" : "#00ccff";
+        const overlayImg = mode === "offense" ? "/6.png" : "/5.png";
+
         return (
           <div
             key={i}
             style={{
-              background: tileColor,
+              backgroundColor: bgColor,
               border: `1px solid ${isSelected ? "#fff6" : "#00ffcc33"}`,
               borderRadius: 4,
               position: "relative",
               cursor: "pointer",
               transition: "background 0.1s",
-              boxShadow: isSelected ? `0 0 6px ${activeColor}` : "none",
+              boxShadow: isSelected ? `0 0 6px ${glowColor}` : "none",
             }}
             onMouseOver={() => handleMouseOver(row, col)}
             onMouseOut={handleMouseOut}
             onMouseDown={() => handleMouseDown(row, col)}
           >
+            {!isSelected && !isHovered && !show1 && !show2 && !show3 && !show4 && (
+              <img
+                src={mode === "offense" ? "/offensetile.png" : "/defensetile.png"}
+                alt="base"
+                style={imgStyle("transparent", 1)}
+                draggable={false}
+              />
+            )}
+            {(isHovered || isSelected) && (
+              <img
+                src={overlayImg}
+                alt="overlay"
+                style={imgStyle(glowColor, isSelected ? 1 : 0.75)}
+                draggable={false}
+              />
+            )}
             {show1 && <img src="/1.png" alt="hit" style={imgStyle("lime")} draggable={false} />}
             {show2 && <img src="/2.png" alt="enemy" style={imgStyle("red", 0.9)} draggable={false} />}
             {show3 && <img src="/3.png" alt="missile" style={imgStyle("orange", 0.95)} draggable={false} />}
             {show4 && <img src="/4.png" alt="sink" style={imgStyle("red")} draggable={false} />}
-            {!show1 && !show2 && !show3 && !show4 && (isHovered || isSelected) && (
-              <img
-                src={imgSrc}
-                alt=""
-                style={imgStyle("rgba(0,255,255,0.3)", isSelected ? 1 : 0.7)}
-                draggable={false}
-              />
-            )}
           </div>
         );
       })}
