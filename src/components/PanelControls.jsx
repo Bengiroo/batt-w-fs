@@ -59,8 +59,32 @@ export default function PanelControls({
 
       {/* Bet Input Area */}
       <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 6 }}>
-        <div style={{ fontWeight: 600, fontSize: 14, textAlign: "center", color: "#00ffff" }}>Bet Amount</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ fontWeight: 600, fontSize: 14, color: "#00ffff" }}>Bet Amount</div>
+
+        <div style={{
+          display: "flex",
+          backgroundColor: "#0a0d1a",
+          border: "2px solid #5c3cfc",
+          borderRadius: 10,
+          overflow: "hidden",
+          height: 42,
+          width: "100%",
+        }}>
+          {/* Dollar icon */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "0 12px",
+            color: "#a084f6",
+            fontSize: 18,
+            fontWeight: 600,
+            backgroundColor: "#0a0d1a",
+          }}>
+            $
+          </div>
+
+          {/* Input */}
           <input
             type="number"
             value={bet}
@@ -69,20 +93,24 @@ export default function PanelControls({
             max={balance}
             style={{
               flex: 1,
-              border: "3px solid #00ccff",
-              borderRadius: 6,
-              padding: "8px 12px",
+              backgroundColor: "#0a0d1a",
+              border: "none",
+              outline: "none",
+              color: "#ffffff",
               fontSize: 16,
-              textAlign: "center",
-              backgroundColor: "#121624",
-              color: "#00ffff",
-              boxShadow: "0 0 6px #00ccff44",
+              padding: "0 10px",
+              textAlign: "left",
+              MozAppearance: "textfield",
+              WebkitAppearance: "none",
+              appearance: "none",
             }}
           />
-          <div style={{ display: "flex", gap: 4 }}>
-            <button onClick={() => setBet(bet / 2)} style={miniBtn}>1/2</button>
-            <button onClick={() => setBet(bet * 2)} style={miniBtn}>2x</button>
-            <button onClick={() => setBet(balance)} style={miniBtn}>Max</button>
+
+          {/* Right-side buttons */}
+          <div style={{ display: "flex", height: "100%" }}>
+            <button onClick={() => setBet(Math.floor(bet / 2))} style={betBtn}>½</button>
+            <button onClick={() => setBet(bet * 2)} style={betBtn}>2X</button>
+            <button onClick={() => setBet(Math.floor(balance / 10))} style={betBtn}>Max</button>
           </div>
         </div>
       </div>
@@ -125,14 +153,16 @@ export default function PanelControls({
   );
 }
 
-const miniBtn = {
-  backgroundColor: "#1f2333",
-  border: "2px solid #00ccff",
-  color: "#00ffff",
+const betBtn = {
+  backgroundColor: "#2e1f5e",
+  border: "none",
+  color: "#ffffff",
   fontWeight: 700,
-  fontSize: 13,
-  borderRadius: 5,
-  padding: "4px 8px",
+  fontSize: 14,
+  padding: "0 12px",
   cursor: "pointer",
-  boxShadow: "0 0 6px #00ccff44",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  borderLeft: "1px solid #5c3cfc",
 };
