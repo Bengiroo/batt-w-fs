@@ -1,20 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import "./WinOverlay.css";
 
-export default function WinOverlay({ visible, balanceChange, multiplier, gridBounds, isLoss }) {
-    const [fading, setFading] = useState(false);
-
-    useEffect(() => {
-        if (visible) {
-            setFading(false);
-            const timer = setTimeout(() => setFading(true), 10000); // 10 seconds then fade
-            return () => clearTimeout(timer);
-        }
-    }, [visible]);
-
+export default function WinOverlay({ visible, balanceChange, multiplier, gridBounds, fading, isLoss }) {
     if (!visible || !gridBounds) return null;
 
-    const isWin = balanceChange > 0;
+    const isWin = !isLoss;
 
     const style = {
         position: "fixed",
@@ -23,7 +13,7 @@ export default function WinOverlay({ visible, balanceChange, multiplier, gridBou
         transform: "translate(-50%, -50%)",
         width: gridBounds.width * 0.30,
         height: gridBounds.height * 0.28,
-        pointerEvents: "none",
+        zIndex: 9999,
     };
 
     return (
