@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Link, useLocation } from "react-router-dom"; // ✅ NEW
 import "./App.css";
 import axios from "axios";
 import { shipSizeOptions, missileSizeOptions } from "./sizeOptions";
@@ -112,6 +113,7 @@ function pickRandomLineBlocks(allowedIndices, maxTiles = 5) {
 
 export default function App() {
   const isPortrait = useOrientation();
+  const location = useLocation(); // ✅ Get current path
   const initialBalance = 500;
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [validated, setValidated] = useState(false);
@@ -246,23 +248,21 @@ export default function App() {
 
   return (
     <div className="app-wrapper">
-      <style>
-        {`
-          @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
-          .rotate-hover:hover img {
-            animation: spin 1s linear infinite;
-          }
-        `}
-      </style>
+      {/* Floating Navigation Links */}
+      {location.pathname !== "/dashboard" && (
+        <Link to="/dashboard" style={floatingLinkStyle}>📊 Dashboard</Link>
+      )}
+      {location.pathname === "/dashboard" && (
+        <Link to="/" style={{ ...floatingLinkStyle, backgroundColor: "#1a1a1a" }}>🔙 Back to Game</Link>
+      )}
 
       <div ref={gridWrapperRef} className="grid-wrapper" style={{ position: "relative", flex: "1 1 auto" }}>
+        {/* Hidden FulfillmentSlider */}
         <div style={{ display: "none" }}>
           <FulfillmentSlider value={selectedCount} total={GRID_SIZE * GRID_SIZE} mode={mode} />
         </div>
 
+        {/* Tile Grids */}
         <TileGrid
           visible={mode === "defense"}
           mode="defense"
@@ -306,50 +306,29 @@ export default function App() {
           setValue={setSizeIdx}
           isOffense={mode === "offense"}
         />
-
         <button
           onClick={() => setOrientation(orientation === "horizontal" ? "vertical" : "horizontal")}
           className="rotate-hover"
           style={{
-            position: "relative",
             width: 60,
             height: 60,
             borderRadius: "50%",
-            border: "2px solid #00ccff",
             backgroundColor: "#121624",
             color: "#00ffff",
             fontSize: 24,
-            fontWeight: 700,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 12,
-            cursor: "pointer",
+            border: "2px solid #00ccff",
             boxShadow: "0 0 8px #00ccff88",
-            overflow: "hidden",
+            marginBottom: 12,
+            cursor: "pointer"
           }}
         >
-          <img
-            src="/rotate.png"
-            alt="rotate"
-            style={{
-              position: "absolute",
-              width: "100%",
-              height: "100%",
-              top: 0,
-              left: 0,
-              objectFit: "cover",
-              opacity: 0.15,
-              pointerEvents: "none",
-            }}
-          />
           {orientation === "horizontal" ? "↔" : "↕"}
         </button>
         <PanelControls
           onReset={handleReset}
           onFire={handleFire}
           onAnchor={handleAnchor}
-          onModeToggle={() => setSelectedMode(mode === "offense" ? "defense" : "offense")} // 👈 Toggle mode
+          onModeToggle={() => setSelectedMode(mode === "offense" ? "defense" : "offense")}
           balance={balance}
           bet={bet}
           setBet={setBet}
@@ -359,8 +338,24 @@ export default function App() {
           winPercentage={winPercentage}
           predictedMultiplier={predictedMultiplier}
         />
-
       </div>
     </div>
   );
 }
+
+// 💡 Reusable neon link style
+const floatingLinkStyle = {
+  position: "fixed",
+  top: 12,
+  right: 12,
+  padding: "10px 16px",
+  backgroundColor: "#0b1e3c",
+  color: "#00ffff",
+  fontWeight: "bold",
+  fontSize: "14px",
+  borderRadius: "8px",
+  border: "2px solid #00ffff",
+  textDecoration: "none",
+  boxShadow: "0 0 12px #00ffff, inset 0 0 4px #00ffff",
+  zIndex: 9999,
+};
