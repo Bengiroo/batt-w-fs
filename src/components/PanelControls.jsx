@@ -135,7 +135,7 @@ export default function PanelControls({
       <div
         style={{
           marginTop: "auto",
-          width: "100%",
+          width: "90%",
           background: "#001122",
           border: "2px solid cyan",
           borderRadius: 10,
