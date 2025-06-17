@@ -2,7 +2,10 @@ import React from "react";
 
 export default function SizeSlider({ sizeOptions, value, setValue, isOffense }) {
   const accent = isOffense ? "#ff3860" : "#33bbff";
-  const label = sizeOptions[value]?.label || sizeOptions[value]?.name;
+  const option = sizeOptions[value];
+  const label = option?.name && option?.label
+    ? `${option.name} (${option.label})`
+    : option?.name || option?.label || "";
 
   return (
     <div style={{ width: "100%", padding: "12px 0", textAlign: "center" }}>
