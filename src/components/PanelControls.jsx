@@ -10,7 +10,7 @@ export default function PanelControls({
     <div
       style={{
         display: "flex",
-        flexDirection: isPortrait ? "column" : "column",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "flex-start",
         width: "100%",
@@ -22,10 +22,39 @@ export default function PanelControls({
       {/* Top Buttons Row */}
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         {[
-          { label: "Reset", icon: "🔁", onClick: onReset, style: { backgroundColor: "#444", border: "2px solid #999" } },
-          { label: "Mode", icon: mode === "offense" ? "🛡" : "🔥", onClick: onModeToggle, style: { backgroundColor: "#1f2333", border: "2px solid #00ccff" } },
-          { label: "Anchor", icon: <img src="/anchor.png" alt="anchor" style={{ width: 28, height: 28 }} />, onClick: onAnchor, style: { backgroundColor: "#00cc66", border: "2px solid #00ffee" } },
-          { label: "Fire", icon: <img src="/fire.png" alt="fire" style={{ width: 28, height: 28 }} />, onClick: onFire, style: { backgroundColor: "#ff0033", border: "2px solid #ff5e7a" } },
+          {
+            label: "Reset",
+            icon: "🔁",
+            onClick: onReset,
+            style: { backgroundColor: "#444", border: "2px solid #999" }
+          },
+          {
+            label: "Mode",
+            icon: (
+              <img
+                src={mode === "offense" ? "/5.png" : "/6.png"}
+                alt="mode"
+                style={{ width: 28, height: 28 }}
+              />
+            ),
+            onClick: onModeToggle,
+            style: {
+              backgroundColor: mode === "offense" ? "#0077ff" : "#ff0033",
+              border: "2px solid #00ccff"
+            }
+          },
+          {
+            label: "Anchor",
+            icon: <img src="/anchor.png" alt="anchor" style={{ width: 28, height: 28 }} />,
+            onClick: onAnchor,
+            style: { backgroundColor: "#00cc66", border: "2px solid #00ffee" }
+          },
+          {
+            label: "Fire",
+            icon: <img src="/fire.png" alt="fire" style={{ width: 28, height: 28 }} />,
+            onClick: onFire,
+            style: { backgroundColor: "#ff0033", border: "2px solid #ff5e7a" }
+          }
         ].map(({ label, icon, onClick, style }, idx) => (
           <div key={idx} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <div style={{
@@ -96,8 +125,9 @@ export default function PanelControls({
             display: "flex", height: "80%", gap: 3,
             marginTop: 4,
             marginBottom: 4,
-            marginright: 8,
-          }}> <button onClick={() => setBet(bet * 2)} style={betBtn}>2X</button>
+            marginRight: 8,
+          }}>
+            <button onClick={() => setBet(bet * 2)} style={betBtn}>2X</button>
             <button onClick={() => setBet(Math.floor(bet / 2))} style={betBtn}>1/2</button>
             <button onClick={() => setBet(Math.floor(balance / 10))} style={betBtn}>Max</button>
           </div>
