@@ -3,7 +3,8 @@ import React from "react";
 export default function PanelControls({
   onReset, onFire, onAnchor,
   balance, bet, setBet, mode, isPortrait,
-  winPercentage, predictedMultiplier
+  winPercentage, predictedMultiplier,
+  onModeToggle
 }) {
   return (
     <div
@@ -18,42 +19,34 @@ export default function PanelControls({
         height: "100%",
       }}
     >
-      {/* Fire + Anchor Buttons */}
+      {/* Top Buttons Row */}
       <div style={{ display: "flex", gap: 10 }}>
         <button
-          onClick={onFire}
-          style={{
-            width: 60,
-            height: 60,
-            borderRadius: 7,
-            backgroundColor: "#ff0033",
-            border: "2px solid #ff5e7a",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 0 8px #ff5e7a88",
-            cursor: "pointer",
-          }}
+          onClick={onReset}
+          style={{ ...iconBtnStyle, backgroundColor: "#444", border: "2px solid #999" }}
         >
-          <img src="/fire.png" alt="fire" style={{ width: 28, height: 28 }} />
+          🔁
+        </button>
+
+        <button
+          onClick={onModeToggle}
+          style={{ ...iconBtnStyle, backgroundColor: "#1f2333", border: "2px solid #00ccff" }}
+        >
+          {mode === "offense" ? "🛡" : "🔥"}
         </button>
 
         <button
           onClick={onAnchor}
-          style={{
-            width: 60,
-            height: 60,
-            borderRadius: 7,
-            backgroundColor: "#00cc66",
-            border: "2px solid #00ffee",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 0 8px #00ffee55",
-            cursor: "pointer",
-          }}
+          style={{ ...iconBtnStyle, backgroundColor: "#00cc66", border: "2px solid #00ffee" }}
         >
           <img src="/anchor.png" alt="anchor" style={{ width: 28, height: 28 }} />
+        </button>
+
+        <button
+          onClick={onFire}
+          style={{ ...iconBtnStyle, backgroundColor: "#ff0033", border: "2px solid #ff5e7a" }}
+        >
+          <img src="/fire.png" alt="fire" style={{ width: 28, height: 28 }} />
         </button>
       </div>
 
@@ -67,7 +60,7 @@ export default function PanelControls({
           border: "2px solid #5c3cfc",
           borderRadius: 10,
           overflow: "hidden",
-          height: 42,
+          height: 40,
           width: "100%",
         }}>
           {/* Dollar icon */}
@@ -75,9 +68,9 @@ export default function PanelControls({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: "0 12px",
+            padding: "0 6px",
             color: "#a084f6",
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: 600,
             backgroundColor: "#0a0d1a",
           }}>
@@ -98,7 +91,7 @@ export default function PanelControls({
               outline: "none",
               color: "#ffffff",
               fontSize: 16,
-              padding: "0 10px",
+              padding: "0 8px",
               textAlign: "left",
               MozAppearance: "textfield",
               WebkitAppearance: "none",
@@ -107,26 +100,34 @@ export default function PanelControls({
           />
 
           {/* Right-side buttons */}
-          <div style={{ display: "flex", height: "100%" }}>
-            <button onClick={() => setBet(Math.floor(bet / 2))} style={betBtn}>½</button>
-            <button onClick={() => setBet(bet * 2)} style={betBtn}>2X</button>
+          <div style={{
+            display: "flex", height: "80%", gap: 3,
+            marginTop: 4,
+            marginBottom: 4,
+            marginright: 8,
+          }}> <button onClick={() => setBet(bet * 2)} style={betBtn}>2X</button>
+            <button onClick={() => setBet(Math.floor(bet / 2))} style={betBtn}>1/2</button>
             <button onClick={() => setBet(Math.floor(balance / 10))} style={betBtn}>Max</button>
           </div>
         </div>
       </div>
 
       {/* Balance Display */}
-      <div style={{ textAlign: "center" }}>
-        <div style={{ fontWeight: 700, fontSize: 12, color: "#00ffff" }}>Balance</div>
+      <div style={{ textAlign: "center", marginTop: 6 }}>
+        <div style={{ fontWeight: 700, fontSize: 13, color: "#00ffff" }}>Balance</div>
         <div
           style={{
-            fontWeight: 800,
-            fontSize: 18,
+            fontWeight: 900,
+            fontSize: 20,
             color: mode === "offense" ? "#ff3860" : "#33bbff",
-            textShadow: "0 0 5px currentColor",
+            textShadow: "0 0 4px currentColor",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 4,
           }}
         >
-          {balance.toFixed(2)} 💰
+          {balance.toFixed(2)} <img src="/coin.png" alt="coin" style={{ height: 18 }} />
         </div>
       </div>
 
@@ -158,11 +159,24 @@ const betBtn = {
   border: "none",
   color: "#ffffff",
   fontWeight: 700,
-  fontSize: 14,
-  padding: "0 12px",
+  fontSize: 13,
+  padding: "0 10px",
   cursor: "pointer",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   borderLeft: "1px solid #5c3cfc",
+};
+
+const iconBtnStyle = {
+  width: 60,
+  height: 60,
+  borderRadius: 7,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: 24,
+  fontWeight: "bold",
+  color: "#fff",
+  cursor: "pointer",
 };
