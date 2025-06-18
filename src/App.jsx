@@ -13,6 +13,8 @@ import LoginScreen from "./components/LoginScreen";
 import WinOverlay from "./components/WinOverlay";
 
 const GRID_SIZE = 10;
+const winSound = new Audio("/win.mp3");
+winSound.volume = 0.5;
 
 function shuffle(arr) {
   let a = arr.slice();
@@ -134,6 +136,11 @@ export default function App() {
   const [isLoss, setIsLoss] = useState(false);
   const gridWrapperRef = useRef(null);
   const [gridBounds, setGridBounds] = useState(null);
+  const animationRef = useRef(null);
+
+  useEffect(() => {
+    return () => cancelAnimationFrame(animationRef.current);
+  }, []);
 
   useEffect(() => {
     if (token) localStorage.setItem("token", token);
@@ -196,22 +203,50 @@ export default function App() {
     const gameMode = mode === "defense" ? "over" : "under";
     const payload = { mode: gameMode, amount: bet, targetNumber };
 
-    console.log("📤 Payload Sent:", payload); // Log payload
+    console.log("\ud83d\udce4 Payload Sent:", payload);
 
     try {
       const res = await axios.post("http://localhost:4000/dice/roll", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("📥 Response Received:", res.data); // Log response
+      console.log("\ud83d\udce5 Response Received:", res.data);
 
       const { win, profit = 0, payoutMultiplier = 0 } = res.data;
 
-      setBalance((b) => +(b + profit).toFixed(2));
+      const start = balance;
+      const end = +(balance + profit).toFixed(2);
+      const duration = 800;
+      const startTime = performance.now();
+      document.body.classList.add("balance-flash");
+
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+
+      const animate = (currentTime) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const currentBalance = start + (end - start) * progress;
+        setBalance(+currentBalance.toFixed(2));
+
+        if (progress < 1) {
+          animationRef.current = requestAnimationFrame(animate);
+        } else {
+          document.body.classList.remove("balance-flash");
+        }
+      };
+
+      animationRef.current = requestAnimationFrame(animate);
+
       setWinAmount(profit);
       setMultiplier(payoutMultiplier);
       setWinVisible(true);
       setIsLoss(!win);
+
+      if (win) {
+        winSound.pause();
+        winSound.currentTime = 0;
+        winSound.play();
+      }
 
       const selectedIndices = selected.map((v, i) => v ? i : null).filter(i => i !== null);
       const unselectedIndices = selected.map((v, i) => !v ? i : null).filter(i => i !== null);
@@ -241,7 +276,7 @@ export default function App() {
         }
       }
     } catch (err) {
-      console.error("❌ API error:", err.response?.data || err.message);
+      console.error("\u274c API error:", err.response?.data || err.message);
     }
   };
 
@@ -253,10 +288,10 @@ export default function App() {
   return (
     <div className="app-wrapper">
       {location.pathname !== "/dashboard" && (
-        <Link to="/dashboard" style={floatingLinkStyle}>📊 Dashboard</Link>
+        <Link to="/dashboard" style={floatingLinkStyle}>\ud83d\udcca Dashboard</Link>
       )}
       {location.pathname === "/dashboard" && (
-        <Link to="/" style={{ ...floatingLinkStyle, backgroundColor: "#1a1a1a" }}>🔙 Back to Game</Link>
+        <Link to="/" style={{ ...floatingLinkStyle, backgroundColor: "#1a1a1a" }}>\ud83d\udd19 Back to Game</Link>
       )}
 
       <div ref={gridWrapperRef} className="grid-wrapper" style={{ position: "relative", flex: "1 1 auto" }}>
@@ -323,7 +358,7 @@ export default function App() {
             cursor: "pointer"
           }}
         >
-          {orientation === "horizontal" ? "↔" : "↕"}
+          {orientation === "horizontal" ? "\u2194" : "\u2195"}
         </button>
         <PanelControls
           onReset={handleReset}
