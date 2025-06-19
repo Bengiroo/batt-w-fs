@@ -1,3 +1,4 @@
+// App.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import "./App.css";
@@ -25,105 +26,94 @@ function shuffle(arr) {
   return a;
 }
 
-function pickRandomLineBlocks(allowedIndices, maxTiles = 5) {
-  allowedIndices = shuffle(allowedIndices);
-  const used = new Set();
-  const found = [];
-
+function pickRandomEnemyTiles(indices, maxTiles = 5, cluster = true) {
   const grid = Array(GRID_SIZE)
     .fill(0)
     .map(() => Array(GRID_SIZE).fill(false));
-  allowedIndices.forEach(i => {
-    const row = Math.floor(i / GRID_SIZE);
-    const col = i % GRID_SIZE;
-    grid[row][col] = true;
+
+  indices.forEach(i => {
+    const r = Math.floor(i / GRID_SIZE);
+    const c = i % GRID_SIZE;
+    grid[r][c] = true;
   });
 
-  function addBlock(indices) {
-    for (let idx of indices) used.add(idx);
-    found.push(...indices);
-  }
+  const used = new Set();
+  const result = [];
 
-  let lines = [];
-  for (let row = 0; row < GRID_SIZE; row++) {
-    for (let col = 0; col <= GRID_SIZE - 3; col++) {
-      const idxs = [row * GRID_SIZE + col, row * GRID_SIZE + col + 1, row * GRID_SIZE + col + 2];
-      if (idxs.every(i => grid[Math.floor(i / GRID_SIZE)][i % GRID_SIZE] && !used.has(i))) {
-        lines.push(idxs);
-      }
+  function tryAdd(block) {
+    if (block.every(i => !used.has(i))) {
+      block.forEach(i => used.add(i));
+      result.push(...block);
     }
   }
-  lines = shuffle(lines);
-  for (let block of lines) {
-    if (found.length + 3 > maxTiles) break;
-    addBlock(block);
-  }
 
-  lines = [];
-  for (let col = 0; col < GRID_SIZE; col++) {
-    for (let row = 0; row <= GRID_SIZE - 3; row++) {
-      const idxs = [row * GRID_SIZE + col, (row + 1) * GRID_SIZE + col, (row + 2) * GRID_SIZE + col];
-      if (idxs.every(i => grid[Math.floor(i / GRID_SIZE)][i % GRID_SIZE] && !used.has(i))) {
-        lines.push(idxs);
+  const horizontal = [], vertical = [], pairs = [];
+
+  if (cluster) {
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c <= GRID_SIZE - 3; c++) {
+        const i = r * GRID_SIZE + c;
+        const block = [i, i + 1, i + 2];
+        if (block.every(idx => indices.includes(idx))) horizontal.push(block);
       }
     }
-  }
-  lines = shuffle(lines);
-  for (let block of lines) {
-    if (found.length + 3 > maxTiles) break;
-    addBlock(block);
-  }
 
-  lines = [];
-  for (let row = 0; row < GRID_SIZE; row++) {
-    for (let col = 0; col <= GRID_SIZE - 2; col++) {
-      const idxs = [row * GRID_SIZE + col, row * GRID_SIZE + col + 1];
-      if (idxs.every(i => grid[Math.floor(i / GRID_SIZE)][i % GRID_SIZE] && !used.has(i))) {
-        lines.push(idxs);
+    for (let c = 0; c < GRID_SIZE; c++) {
+      for (let r = 0; r <= GRID_SIZE - 3; r++) {
+        const i = r * GRID_SIZE + c;
+        const block = [i, i + GRID_SIZE, i + 2 * GRID_SIZE];
+        if (block.every(idx => indices.includes(idx))) vertical.push(block);
       }
     }
-  }
-  lines = shuffle(lines);
-  for (let block of lines) {
-    if (found.length + 2 > maxTiles) break;
-    addBlock(block);
-  }
 
-  lines = [];
-  for (let col = 0; col < GRID_SIZE; col++) {
-    for (let row = 0; row <= GRID_SIZE - 2; row++) {
-      const idxs = [row * GRID_SIZE + col, (row + 1) * GRID_SIZE + col];
-      if (idxs.every(i => grid[Math.floor(i / GRID_SIZE)][i % GRID_SIZE] && !used.has(i))) {
-        lines.push(idxs);
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c <= GRID_SIZE - 2; c++) {
+        const i = r * GRID_SIZE + c;
+        const block = [i, i + 1];
+        if (block.every(idx => indices.includes(idx))) pairs.push(block);
       }
     }
-  }
-  lines = shuffle(lines);
-  for (let block of lines) {
-    if (found.length + 2 > maxTiles) break;
-    addBlock(block);
+
+    for (let c = 0; c < GRID_SIZE; c++) {
+      for (let r = 0; r <= GRID_SIZE - 2; r++) {
+        const i = r * GRID_SIZE + c;
+        const block = [i, i + GRID_SIZE];
+        if (block.every(idx => indices.includes(idx))) pairs.push(block);
+      }
+    }
+
+    shuffle(horizontal).forEach(b => {
+      if (result.length < maxTiles) tryAdd(b);
+    });
+    shuffle(vertical).forEach(b => {
+      if (result.length < maxTiles) tryAdd(b);
+    });
+    shuffle(pairs).forEach(b => {
+      if (result.length < maxTiles) tryAdd(b);
+    });
   }
 
-  const singles = shuffle(allowedIndices.filter(i => !used.has(i)));
-  for (let i = 0; i < singles.length && found.length < maxTiles; ++i) {
-    used.add(singles[i]);
-    found.push(singles[i]);
+  const remaining = shuffle(indices.filter(i => !used.has(i)));
+  for (let i = 0; i < remaining.length && result.length < maxTiles; i++) {
+    result.push(remaining[i]);
+    used.add(remaining[i]);
   }
 
-  return found.slice(0, maxTiles);
+  return result.slice(0, maxTiles);
 }
 
 export default function App() {
   const isPortrait = useOrientation();
   const location = useLocation();
   const initialBalance = 500;
+
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [validated, setValidated] = useState(false);
   const [selectedMode, setSelectedMode] = useState(null);
   const [orientation, setOrientation] = useState("horizontal");
   const [sizeIdx, setSizeIdx] = useState(0);
-  const [defenseSelected, setDefenseSelected] = useState(Array(GRID_SIZE * GRID_SIZE).fill(false));
-  const [offenseSelected, setOffenseSelected] = useState(Array(GRID_SIZE * GRID_SIZE).fill(false));
+  const [defenseSelected, setDefenseSelected] = useState(Array(100).fill(false));
+  const [offenseSelected, setOffenseSelected] = useState(Array(100).fill(false));
   const [enemyShipTiles, setEnemyShipTiles] = useState([]);
   const [hitTiles, setHitTiles] = useState([]);
   const [enemyMissiles, setEnemyMissiles] = useState([]);
@@ -148,20 +138,17 @@ export default function App() {
   }, [token]);
 
   useEffect(() => {
-    const validateToken = async () => {
-      if (!token) return;
-      try {
-        await axios.get("http://localhost:4000/auth/validate", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setValidated(true);
-      } catch {
+    if (!token) return;
+    axios
+      .get("http://localhost:4000/auth/validate", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then(() => setValidated(true))
+      .catch(() => {
         localStorage.removeItem("token");
         setToken("");
         setValidated(false);
-      }
-    };
-    validateToken();
+      });
   }, [token]);
 
   useEffect(() => {
@@ -174,21 +161,19 @@ export default function App() {
   }, [orientation, selectedMode]);
 
   const mode = selectedMode;
-  const sizeOptions = mode === "offense" ? missileSizeOptions : shipSizeOptions;
-  const brushSize = sizeOptions[sizeIdx];
   const selected = mode === "offense" ? offenseSelected : defenseSelected;
   const setSelected = mode === "offense" ? setOffenseSelected : setDefenseSelected;
+  const sizeOptions = mode === "offense" ? missileSizeOptions : shipSizeOptions;
+  const brushSize = sizeOptions[sizeIdx];
   const selectedCount = selected.filter(Boolean).length;
-  const canFire = selectedCount > 0 && selectedCount < GRID_SIZE * GRID_SIZE;
+  const canFire = selectedCount > 0 && selectedCount < 100;
 
-  const winChance = mode === "defense"
-    ? (100 - selectedCount) / 100
-    : selectedCount / 100;
+  const winChance = mode === "offense" ? selectedCount / 100 : 1 - selectedCount / 100;
   const predictedMultiplier = winChance > 0 ? +(0.99 / winChance).toFixed(2) : 0;
   const winPercentage = (winChance * 100).toFixed(1);
 
   const handleReset = () => {
-    setSelected(Array(GRID_SIZE * GRID_SIZE).fill(false));
+    setSelected(Array(100).fill(false));
     setWinVisible(false);
     setWinAmount(0);
     setMultiplier(0);
@@ -203,42 +188,39 @@ export default function App() {
     if (!canFire || bet <= 0 || bet > pendingBalanceRef.current) return;
 
     const targetNumber = selectedCount;
-    const gameMode = mode === "defense" ? "over" : "under";
-    const payload = { mode: gameMode, amount: bet, targetNumber };
-
-    console.log("📤 Payload Sent:", payload);
+    const gameMode = mode === "offense" ? "under" : "over";
 
     try {
-      const res = await axios.post("http://localhost:4000/dice/roll", payload, {
+      const res = await axios.post("http://localhost:4000/dice/roll", {
+        mode: gameMode,
+        amount: bet,
+        targetNumber,
+      }, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      console.log("📥 Response Received:", res.data);
 
       const { win, profit = 0, payoutMultiplier = 0 } = res.data;
 
       const start = pendingBalanceRef.current;
       const end = +(start + profit).toFixed(2);
       pendingBalanceRef.current = end;
-      const duration = 800;
       const startTime = performance.now();
+      const duration = 800;
       document.body.classList.add("balance-flash");
 
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
 
-      const animate = (currentTime) => {
+      const animate = currentTime => {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        const currentBalance = start + (end - start) * progress;
-        setBalance(+currentBalance.toFixed(2));
-
+        const current = start + (end - start) * progress;
+        setBalance(+current.toFixed(2));
         if (progress < 1) {
           animationRef.current = requestAnimationFrame(animate);
         } else {
           document.body.classList.remove("balance-flash");
         }
       };
-
       animationRef.current = requestAnimationFrame(animate);
 
       setWinAmount(profit);
@@ -252,31 +234,18 @@ export default function App() {
         winSound.play();
       }
 
-      const selectedIndices = selected.map((v, i) => v ? i : null).filter(i => i !== null);
-      const unselectedIndices = selected.map((v, i) => !v ? i : null).filter(i => i !== null);
+      const selectedIdx = selected.map((v, i) => v ? i : null).filter(Boolean);
+      const unselected = selected.map((v, i) => !v ? i : null).filter(Boolean);
 
       if (mode === "offense") {
-        if (win) {
-          const hit = selectedIndices.length > 0 ? [selectedIndices[Math.floor(Math.random() * selectedIndices.length)]] : [];
-          setHitTiles(hit);
-        } else {
-          setHitTiles([]);
-        }
-        const enemy = pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length));
-        setEnemyShipTiles(enemy);
+        setHitTiles(win ? [selectedIdx[Math.floor(Math.random() * selectedIdx.length)]] : []);
+        setEnemyShipTiles(pickRandomEnemyTiles(unselected, 5, true));
       } else {
-        if (win) {
-          setEnemyHits([]);
-        } else {
-          const hitCount = Math.min(Math.max(1, Math.floor(Math.random() * 5) + 1), selectedIndices.length);
-          const hits = shuffle(selectedIndices).slice(0, hitCount);
-          setEnemyHits(hits);
-        }
-        const enemy = pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length));
-        setEnemyMissiles(enemy);
+        setEnemyMissiles(pickRandomEnemyTiles(unselected, 5, false));
+        setEnemyHits(win ? [] : shuffle(selectedIdx).slice(0, Math.min(selectedIdx.length, Math.floor(Math.random() * 5) + 1)));
       }
     } catch (err) {
-      console.error("❌ API error:", err.response?.data || err.message);
+      console.error("❌ API Error:", err.response?.data || err.message);
     }
   };
 
@@ -296,7 +265,7 @@ export default function App() {
 
       <div ref={gridWrapperRef} className="grid-wrapper" style={{ position: "relative", flex: "1 1 auto" }}>
         <div style={{ display: "none" }}>
-          <FulfillmentSlider value={selectedCount} total={GRID_SIZE * GRID_SIZE} mode={mode} />
+          <FulfillmentSlider value={selectedCount} total={100} mode={mode} />
         </div>
 
         <TileGrid
