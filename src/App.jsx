@@ -137,6 +137,7 @@ export default function App() {
   const gridWrapperRef = useRef(null);
   const [gridBounds, setGridBounds] = useState(null);
   const animationRef = useRef(null);
+  const pendingBalanceRef = useRef(initialBalance);
 
   useEffect(() => {
     return () => cancelAnimationFrame(animationRef.current);
@@ -180,7 +181,9 @@ export default function App() {
   const selectedCount = selected.filter(Boolean).length;
   const canFire = selectedCount > 0 && selectedCount < GRID_SIZE * GRID_SIZE;
 
-  const winChance = mode === "offense" ? selectedCount / 100 : 1 - selectedCount / 100;
+  const winChance = mode === "defense"
+    ? (100 - selectedCount) / 100
+    : selectedCount / 100;
   const predictedMultiplier = winChance > 0 ? +(0.99 / winChance).toFixed(2) : 0;
   const winPercentage = (winChance * 100).toFixed(1);
 
@@ -197,25 +200,26 @@ export default function App() {
   };
 
   const handleFire = async () => {
-    if (!canFire || bet <= 0 || bet > balance) return;
+    if (!canFire || bet <= 0 || bet > pendingBalanceRef.current) return;
 
     const targetNumber = selectedCount;
     const gameMode = mode === "defense" ? "over" : "under";
     const payload = { mode: gameMode, amount: bet, targetNumber };
 
-    console.log("\ud83d\udce4 Payload Sent:", payload);
+    console.log("📤 Payload Sent:", payload);
 
     try {
       const res = await axios.post("http://localhost:4000/dice/roll", payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("\ud83d\udce5 Response Received:", res.data);
+      console.log("📥 Response Received:", res.data);
 
       const { win, profit = 0, payoutMultiplier = 0 } = res.data;
 
-      const start = balance;
-      const end = +(balance + profit).toFixed(2);
+      const start = pendingBalanceRef.current;
+      const end = +(start + profit).toFixed(2);
+      pendingBalanceRef.current = end;
       const duration = 800;
       const startTime = performance.now();
       document.body.classList.add("balance-flash");
@@ -255,28 +259,24 @@ export default function App() {
         if (win) {
           const hit = selectedIndices.length > 0 ? [selectedIndices[Math.floor(Math.random() * selectedIndices.length)]] : [];
           setHitTiles(hit);
-          const enemy = unselectedIndices.length > 0 ? pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length)) : [];
-          setEnemyShipTiles(enemy);
         } else {
           setHitTiles([]);
-          const enemy = unselectedIndices.length > 0 ? pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length)) : [];
-          setEnemyShipTiles(enemy);
         }
+        const enemy = pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length));
+        setEnemyShipTiles(enemy);
       } else {
         if (win) {
           setEnemyHits([]);
-          const enemy = unselectedIndices.length > 0 ? pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length)) : [];
-          setEnemyMissiles(enemy);
         } else {
           const hitCount = Math.min(Math.max(1, Math.floor(Math.random() * 5) + 1), selectedIndices.length);
           const hits = shuffle(selectedIndices).slice(0, hitCount);
           setEnemyHits(hits);
-          const enemy = unselectedIndices.length > 0 ? pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length)) : [];
-          setEnemyMissiles(enemy);
         }
+        const enemy = pickRandomLineBlocks(unselectedIndices, Math.min(5, unselectedIndices.length));
+        setEnemyMissiles(enemy);
       }
     } catch (err) {
-      console.error("\u274c API error:", err.response?.data || err.message);
+      console.error("❌ API error:", err.response?.data || err.message);
     }
   };
 
@@ -288,10 +288,10 @@ export default function App() {
   return (
     <div className="app-wrapper">
       {location.pathname !== "/dashboard" && (
-        <Link to="/dashboard" style={floatingLinkStyle}>\ud83d\udcca Dashboard</Link>
+        <Link to="/dashboard" style={floatingLinkStyle}>📊 Dashboard</Link>
       )}
       {location.pathname === "/dashboard" && (
-        <Link to="/" style={{ ...floatingLinkStyle, backgroundColor: "#1a1a1a" }}>\ud83d\udd19 Back to Game</Link>
+        <Link to="/" style={{ ...floatingLinkStyle, backgroundColor: "#1a1a1a" }}>🔙 Back to Game</Link>
       )}
 
       <div ref={gridWrapperRef} className="grid-wrapper" style={{ position: "relative", flex: "1 1 auto" }}>
@@ -358,7 +358,7 @@ export default function App() {
             cursor: "pointer"
           }}
         >
-          {orientation === "horizontal" ? "\u2194" : "\u2195"}
+          {orientation === "horizontal" ? "↔" : "↕"}
         </button>
         <PanelControls
           onReset={handleReset}
