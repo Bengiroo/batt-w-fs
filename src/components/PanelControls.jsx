@@ -6,6 +6,8 @@ export default function PanelControls({
   winPercentage, predictedMultiplier,
   onModeToggle
 }) {
+  const resetIcon = mode === "offense" ? "/oclear.png" : "/dclear.png";
+
   return (
     <div
       style={{
@@ -21,40 +23,56 @@ export default function PanelControls({
     >
       {/* === Top Button Row === */}
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-        {[
-          {
-            label: "Reset",
-            icon: "🔁",
-            onClick: onReset,
-            style: { backgroundColor: "#444", border: "2px solid #999" }
-          },
-          {
-            label: "Mode",
-            icon: (
-              <img
-                src={mode === "offense" ? "/5.png" : "/6.png"}
-                alt="mode"
-                style={{ width: 28, height: 28 }}
-              />
-            ),
-            onClick: onModeToggle,
-            style: {
-              backgroundColor: mode === "offense" ? "#0077ff" : "#ff0033",
-              border: "2px solid #00ccff"
-            }
-          },
-          {
-            label: "Anchor",
-            icon: <img src="/anchor.png" alt="anchor" style={{ width: 28, height: 28 }} />,
-            onClick: onAnchor,
-            style: { backgroundColor: "#00cc66", border: "2px solid #00ffee" }
-          },
-          {
-            label: "Fire",
-            icon: <img src="/fire.png" alt="fire" style={{ width: 28, height: 28 }} />,
-            onClick: onFire,
-            style: { backgroundColor: "#ff0033", border: "2px solid #ff5e7a" }
+        {[{
+          label: "Clear",
+          icon: (
+            <img
+              src={resetIcon}
+              alt="clear"
+              style={{ width: 60, height: 60, objectFit: "contain" }}
+            />
+          ),
+          onClick: onReset,
+          style: {
+            backgroundColor: "transparent",
+            border: "2px solid #00ccff",
           }
+        },
+        {
+          label: "Mode",
+          icon: (
+            <img
+              src={mode === "offense" ? "/5.png" : "/6.png"}
+              alt="mode"
+              style={{ width: 56, height: 56, objectFit: "contain" }}
+            />
+          ),
+          onClick: onModeToggle,
+          style: {
+            backgroundColor: mode === "offense" ? "#0077ff" : "#ff0033",
+            border: "2px solid #00ccff"
+          }
+        },
+        {
+          label: "Anchor",
+          icon: <img src="/anchor.png" alt="anchor" style={{ width: 56, height: 56, objectFit: "contain" }} />,
+          onClick: onAnchor,
+          style: { backgroundColor: "#00cc66", border: "2px solid #00ffee" }
+        },
+        {
+          label: "Fire",
+          icon: <img src="/fire.png" alt="fire" style={{ width: 56, height: 56, objectFit: "contain" }} />,
+          onClick: () => {
+            console.log("🔥 FIRE API PAYLOAD:", {
+              bet,
+              mode,
+              winPercentage,
+              predictedMultiplier
+            });
+            onFire();
+          },
+          style: { backgroundColor: "#ff0033", border: "2px solid #ff5e7a" }
+        }
         ].map(({ label, icon, onClick, style }, idx) => (
           <div key={idx} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <div style={{
@@ -163,15 +181,10 @@ export default function PanelControls({
           </div>
         </div>
       </div>
-
-
-      {/* === Stats Area === */}
-
     </div>
   );
 }
 
-// === Button Styles ===
 const iconBtnStyle = {
   width: 60,
   height: 60,
