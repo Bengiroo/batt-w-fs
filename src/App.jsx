@@ -305,30 +305,23 @@ export default function App() {
       </div>
 
       <div className="panel-wrapper">
-        <SizeSlider
-          sizeOptions={sizeOptions}
-          value={sizeIdx}
-          setValue={setSizeIdx}
-          isOffense={mode === "offense"}
-        />
-        <button
-          onClick={() => setOrientation(orientation === "horizontal" ? "vertical" : "horizontal")}
-          className="rotate-hover"
-          style={{
-            width: 60,
-            height: 60,
-            borderRadius: "50%",
-            backgroundColor: "#121624",
-            color: "#00ffff",
-            fontSize: 24,
-            border: "2px solid #00ccff",
-            boxShadow: "0 0 8px #00ccff88",
-            marginBottom: 12,
-            cursor: "pointer"
-          }}
-        >
-          {orientation === "horizontal" ? "↔" : "↕"}
-        </button>
+        <div className="rotate-size-row">
+          <div className="size-slider-container">
+            <SizeSlider
+              sizeOptions={sizeOptions}
+              value={sizeIdx}
+              setValue={setSizeIdx}
+              isOffense={mode === "offense"}
+            />
+          </div>
+          <button
+            onClick={() => setOrientation(orientation === "horizontal" ? "vertical" : "horizontal")}
+            className="rotate-hover"
+          >
+            {orientation === "horizontal" ? "↔" : "↕"}
+          </button>
+        </div>
+
         <PanelControls
           onReset={handleReset}
           onFire={handleFire}
