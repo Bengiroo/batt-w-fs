@@ -245,7 +245,7 @@ export default function App() {
         setEnemyHits(win ? [] : shuffle(selectedIdx).slice(0, Math.min(selectedIdx.length, Math.floor(Math.random() * 5) + 1)));
       }
     } catch (err) {
-      console.error("❌ API Error:", err.response?.data || err.message);
+      console.error("\u274C API Error:", err.response?.data || err.message);
     }
   };
 
@@ -257,10 +257,10 @@ export default function App() {
   return (
     <div className="app-wrapper">
       {location.pathname !== "/dashboard" && (
-        <Link to="/dashboard" style={floatingLinkStyle}>📊 Dashboard</Link>
+        <Link to="/dashboard" style={floatingLinkStyle}>Dashboard</Link>
       )}
       {location.pathname === "/dashboard" && (
-        <Link to="/" style={{ ...floatingLinkStyle, backgroundColor: "#1a1a1a" }}>🔙 Back to Game</Link>
+        <Link to="/" style={{ ...floatingLinkStyle, backgroundColor: "#1a1a1a" }}>\ud83d\udd19 Back to Game</Link>
       )}
 
       <div ref={gridWrapperRef} className="grid-wrapper" style={{ position: "relative", flex: "1 1 auto" }}>
@@ -316,9 +316,11 @@ export default function App() {
           </div>
           <button
             onClick={() => setOrientation(orientation === "horizontal" ? "vertical" : "horizontal")}
-            className="rotate-hover"
+            className="rotate-button"
+            title="Rotate"
           >
-            {orientation === "horizontal" ? "↔" : "↕"}
+            <span className="rotate-icon" />
+            <span className="rotate-arrow">{orientation === "horizontal" ? "↔" : "↕"}</span>
           </button>
         </div>
 

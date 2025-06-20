@@ -393,10 +393,57 @@ html,
   flex-shrink: 1;
 }
 
-.rotate-hover {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  font-size: 20px;
-  margin: 0;
+.rotate-button {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 100% !important;
+  background-color: #3762f0 !important;
+  border: 2px solid #001f3f !important;
+  /* dark navy border */
+  cursor: pointer !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: inset 0 0 1px #001f3f66, 0 0 2px #001f3f66 !important;
+  /* navy blue glow */
+}
+
+.rotate-button:hover {
+  box-shadow: inset 0 0 4px #0b6fd3aa, 0 0 8px #0a6cceaa !important;
+  /* navy blue hover glow */
+}
+
+.rotate-icon {
+  position: absolute !important;
+  width: 100% !important;
+  height: 100% !important;
+  background-image: url("/rotate.png") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  animation: rotateSpin 1.2s linear infinite !important;
+  z-index: 0 !important;
+  opacity: 0.4 !important;
+}
+
+.rotate-arrow {
+  position: relative !important;
+  z-index: 1 !important;
+  font-size: 20px !important;
+  font-weight: bold !important;
+  color: #305780 !important;
+  /* soft blue */
+  text-shadow: 0 0 1px #2474c4aa !important;
+  /* subtle navy shadow */
+}
+
+@keyframes rotateSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
