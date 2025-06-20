@@ -19,7 +19,7 @@ export default function PanelControls({
         height: "100%",
       }}
     >
-      {/* Top Buttons Row */}
+      {/* === Top Button Row === */}
       <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
         {[
           {
@@ -71,10 +71,42 @@ export default function PanelControls({
         ))}
       </div>
 
-      {/* Bet Input Area */}
+      {/* === Bet Input & Balance Row === */}
       <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 6 }}>
-        <div style={{ fontWeight: 600, fontSize: 14, color: "#00ffff" }}>Bet Amount</div>
 
+        {/* Row: Bet Amount + Balance */}
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: 16,
+          fontSize: 14,
+          fontWeight: 700,
+          color: "#00ffff"
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 600 }}>Bet Amount</div>
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            fontSize: 16,
+            fontWeight: 800,
+            color: "#00ffcc",
+            whiteSpace: "nowrap"
+          }}>
+            <span>Balance:</span>
+            <span style={{
+              color: mode === "offense" ? "#ff3860" : "#33bbff",
+              textShadow: "0 0 4px currentColor",
+              fontSize: 18
+            }}>
+              {balance.toFixed(2)}
+            </span>
+            <img src="/coin.png" alt="coin" style={{ height: 18 }} />
+          </div>
+        </div>
+
+        {/* Bet Input + Buttons */}
         <div style={{
           display: "flex",
           backgroundColor: "#0a0d1a",
@@ -84,7 +116,7 @@ export default function PanelControls({
           height: 40,
           width: "100%",
         }}>
-          {/* Dollar icon */}
+          {/* Dollar Symbol */}
           <div style={{
             display: "flex",
             alignItems: "center",
@@ -94,9 +126,7 @@ export default function PanelControls({
             fontSize: 16,
             fontWeight: 600,
             backgroundColor: "#0a0d1a",
-          }}>
-            $
-          </div>
+          }}>$</div>
 
           {/* Input */}
           <input
@@ -120,7 +150,7 @@ export default function PanelControls({
             }}
           />
 
-          {/* Right-side buttons */}
+          {/* Bet Action Buttons */}
           <div style={{
             display: "flex", height: "80%", gap: 3,
             marginTop: 4,
@@ -134,26 +164,8 @@ export default function PanelControls({
         </div>
       </div>
 
-      {/* Balance Display */}
-      <div style={{ textAlign: "center", marginTop: 6 }}>
-        <div style={{ fontWeight: 700, fontSize: 13, color: "#00ffff" }}>Balance</div>
-        <div
-          style={{
-            fontWeight: 900,
-            fontSize: 20,
-            color: mode === "offense" ? "#ff3860" : "#33bbff",
-            textShadow: "0 0 4px currentColor",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 4,
-          }}
-        >
-          {balance.toFixed(2)} <img src="/coin.png" alt="coin" style={{ height: 18 }} />
-        </div>
-      </div>
 
-      {/* Stats at Bottom */}
+      {/* === Stats Area === */}
       <div
         style={{
           marginTop: "auto",
@@ -176,6 +188,20 @@ export default function PanelControls({
   );
 }
 
+// === Button Styles ===
+const iconBtnStyle = {
+  width: 60,
+  height: 60,
+  borderRadius: 7,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  fontSize: 24,
+  fontWeight: "bold",
+  color: "#fff",
+  cursor: "pointer",
+};
+
 const betBtn = {
   backgroundColor: "#2e1f5e",
   border: "none",
@@ -188,17 +214,4 @@ const betBtn = {
   alignItems: "center",
   justifyContent: "center",
   borderLeft: "1px solid #5c3cfc",
-};
-
-const iconBtnStyle = {
-  width: 60,
-  height: 60,
-  borderRadius: 7,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  fontSize: 24,
-  fontWeight: "bold",
-  color: "#fff",
-  cursor: "pointer",
 };
