@@ -4,7 +4,8 @@ export default function PanelControls({
   onReset, onFire, onAnchor,
   balance, bet, setBet, mode, isPortrait,
   winPercentage, predictedMultiplier,
-  onModeToggle
+  onModeToggle,
+  canFire
 }) {
   const resetIcon = mode === "offense" ? "/oclear.png" : "/dclear.png";
 
@@ -62,7 +63,7 @@ export default function PanelControls({
         {
           label: "Fire",
           icon: <img src="/fire.png" alt="fire" style={{ width: 56, height: 56, objectFit: "contain" }} />,
-          onClick: () => {
+          onClick: canFire ? () => {
             console.log("🔥 FIRE API PAYLOAD:", {
               bet,
               mode,
@@ -70,10 +71,16 @@ export default function PanelControls({
               predictedMultiplier
             });
             onFire();
+          } : undefined,
+          style: {
+            backgroundColor: "#ff0033",
+            border: "2px solid #ff5e7a",
+            opacity: canFire ? 1 : 0.4,
+            cursor: canFire ? "pointer" : "not-allowed"
           },
-          style: { backgroundColor: "#ff0033", border: "2px solid #ff5e7a" }
+          disabled: !canFire
         }
-        ].map(({ label, icon, onClick, style }, idx) => (
+        ].map(({ label, icon, onClick, style, disabled }, idx) => (
           <div key={idx} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
             <div style={{
               fontSize: 12,
@@ -82,7 +89,11 @@ export default function PanelControls({
               textShadow: "0 0 6px #ffffffaa",
               marginBottom: 4
             }}>{label}</div>
-            <button onClick={onClick} style={{ ...iconBtnStyle, ...style }}>
+            <button
+              onClick={onClick}
+              style={{ ...iconBtnStyle, ...style }}
+              disabled={disabled}
+            >
               {icon}
             </button>
           </div>
@@ -91,8 +102,6 @@ export default function PanelControls({
 
       {/* === Bet Input & Balance Row === */}
       <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 6 }}>
-
-        {/* Row: Bet Amount + Balance */}
         <div style={{
           display: "flex",
           justifyContent: "space-between",

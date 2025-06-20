@@ -36,6 +36,7 @@ function pickRandomEnemyTiles(indices, maxTiles = 5, cluster = true) {
 
   const used = new Set();
   const result = [];
+
   function tryAdd(block) {
     if (block.every(i => !used.has(i))) {
       block.forEach(i => used.add(i));
@@ -77,11 +78,13 @@ function pickRandomEnemyTiles(indices, maxTiles = 5, cluster = true) {
     shuffle(vertical).forEach(b => { if (result.length < maxTiles) tryAdd(b); });
     shuffle(pairs).forEach(b => { if (result.length < maxTiles) tryAdd(b); });
   }
+
   const remaining = shuffle(indices.filter(i => !used.has(i)));
   for (let i = 0; i < remaining.length && result.length < maxTiles; i++) {
     result.push(remaining[i]);
     used.add(remaining[i]);
   }
+
   return result.slice(0, maxTiles);
 }
 
@@ -158,14 +161,21 @@ export default function App() {
 
   const handleFire = async () => {
     if (!canFire || bet <= 0 || bet > pendingBalanceRef.current) return;
-    const targetNumber = selectedCount;
-    const gameMode = mode === "offense" ? "under" : "over";
+
+    const payload = {
+      mode: mode === "offense" ? "under" : "over",
+      amount: bet,
+      targetNumber: selectedCount,
+    };
+
+    console.log("📤 API Request:", payload);
+
     try {
-      const res = await axios.post("http://localhost:4000/dice/roll", {
-        mode: gameMode,
-        amount: bet,
-        targetNumber,
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.post("http://localhost:4000/dice/roll", payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      console.log("📥 API Response:", res.data);
 
       const { win, profit = 0, payoutMultiplier = 0 } = res.data;
       const start = pendingBalanceRef.current;
@@ -200,6 +210,7 @@ export default function App() {
 
       const selectedIdx = selected.map((v, i) => v ? i : null).filter(Boolean);
       const unselected = selected.map((v, i) => !v ? i : null).filter(Boolean);
+
       if (mode === "offense") {
         setHitTiles(win ? [selectedIdx[Math.floor(Math.random() * selectedIdx.length)]] : []);
         setEnemyShipTiles(pickRandomEnemyTiles(unselected, 5, true));
@@ -208,42 +219,33 @@ export default function App() {
         setEnemyHits(win ? [] : shuffle(selectedIdx).slice(0, Math.min(selectedIdx.length, Math.floor(Math.random() * 5) + 1)));
       }
     } catch (err) {
-      console.error("\u274C API Error:", err.response?.data || err.message);
+      console.error("❌ API Error:", err.response?.data || err.message);
     }
   };
 
   const handleAnchor = () => alert("Anchor set!");
+
   if (!token || !validated) return <LoginScreen onLogin={setToken} />;
   if (!selectedMode) return <ModeSelectScreen isPortrait={isPortrait} onSelectMode={setSelectedMode} />;
 
   return (
     <div className="app-wrapper">
-      {location.pathname !== "/dashboard" && (
-        <Link to="/dashboard" style={floatingLinkStyle}>Dashboard</Link>
-      )}
-      {location.pathname === "/dashboard" && (
-        <Link to="/" style={{ ...floatingLinkStyle, backgroundColor: "#1a1a1a" }}>🔙 Back to Game</Link>
-      )}
+      <Link to="/dashboard" style={floatingLinkStyle}>Dashboard</Link>
 
       <div ref={gridWrapperRef} className="grid-wrapper" style={{ position: "relative", flex: "1 1 auto" }}>
-        <div style={{ display: "none" }}>
-          <FulfillmentSlider value={selectedCount} total={100} mode={mode} />
-        </div>
         <TileGrid visible={mode === "defense"} mode="defense" brushSize={brushSize} orientation={orientation} selected={defenseSelected} setSelected={setDefenseSelected} imgSrc="/5.png" enemyMissiles={enemyMissiles} enemyHits={enemyHits} win={winVisible && !isLoss} />
         <TileGrid visible={mode === "offense"} mode="offense" brushSize={brushSize} orientation={orientation} selected={offenseSelected} setSelected={setOffenseSelected} imgSrc="/6.png" enemyTiles={enemyShipTiles} hitTiles={hitTiles} win={winVisible && !isLoss} />
       </div>
 
       <div className="panel-wrapper">
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
-          <WinOverlay
-            visible={winVisible}
-            balanceChange={winAmount}
-            multiplier={multiplier}
-            isLoss={isLoss}
-            winPercentage={winPercentage}
-            predictedMultiplier={predictedMultiplier}
-          />
-        </div>
+        <WinOverlay
+          visible={winVisible}
+          balanceChange={winAmount}
+          multiplier={multiplier}
+          isLoss={isLoss}
+          winPercentage={winPercentage}
+          predictedMultiplier={predictedMultiplier}
+        />
 
         <div className="rotate-size-row">
           <div className="size-slider-container">
