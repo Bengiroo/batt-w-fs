@@ -244,7 +244,7 @@ button:hover {
   justify-content: center;
   align-items: center;
   pointer-events: none;
-  opacity: 1;
+  opacity: 5;
   transition: opacity 2s ease-in-out;
 }
 
@@ -446,4 +446,47 @@ html,
   100% {
     transform: rotate(360deg);
   }
+}
+
+.win-overlay-panel {
+  width: 100%;
+  padding: 2px 12px;
+  background: rgba(0, 15, 25, 0.95);
+  border-bottom: 2px solid #00f6ff;
+  box-shadow: 0 3px 8px rgba(0, 255, 255, 0.2);
+  color: #00ffff;
+  z-index: 2;
+  border-radius: 8%;
+  text-align: center;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 2s ease-in-out;
+}
+
+.win-content {
+  text-align: center;
+  color: lime;
+  text-shadow: 0 0 5px #0f0, 0 0 10px #0f0;
+}
+
+.win-title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.win-amount {
+  font-size: 22px;
+  font-weight: bold;
+  color: #00ffcc;
+}
+
+.win-multiplier {
+  font-size: 16px;
+  font-weight: bold;
+  color: cyan;
+}
+
+.loss-x {
+  font-size: 28px;
+  color: #ff4c4c;
 }

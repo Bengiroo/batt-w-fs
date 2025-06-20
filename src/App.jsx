@@ -27,10 +27,7 @@ function shuffle(arr) {
 }
 
 function pickRandomEnemyTiles(indices, maxTiles = 5, cluster = true) {
-  const grid = Array(GRID_SIZE)
-    .fill(0)
-    .map(() => Array(GRID_SIZE).fill(false));
-
+  const grid = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(false));
   indices.forEach(i => {
     const r = Math.floor(i / GRID_SIZE);
     const c = i % GRID_SIZE;
@@ -39,7 +36,6 @@ function pickRandomEnemyTiles(indices, maxTiles = 5, cluster = true) {
 
   const used = new Set();
   const result = [];
-
   function tryAdd(block) {
     if (block.every(i => !used.has(i))) {
       block.forEach(i => used.add(i));
@@ -48,7 +44,6 @@ function pickRandomEnemyTiles(indices, maxTiles = 5, cluster = true) {
   }
 
   const horizontal = [], vertical = [], pairs = [];
-
   if (cluster) {
     for (let r = 0; r < GRID_SIZE; r++) {
       for (let c = 0; c <= GRID_SIZE - 3; c++) {
@@ -57,7 +52,6 @@ function pickRandomEnemyTiles(indices, maxTiles = 5, cluster = true) {
         if (block.every(idx => indices.includes(idx))) horizontal.push(block);
       }
     }
-
     for (let c = 0; c < GRID_SIZE; c++) {
       for (let r = 0; r <= GRID_SIZE - 3; r++) {
         const i = r * GRID_SIZE + c;
@@ -65,7 +59,6 @@ function pickRandomEnemyTiles(indices, maxTiles = 5, cluster = true) {
         if (block.every(idx => indices.includes(idx))) vertical.push(block);
       }
     }
-
     for (let r = 0; r < GRID_SIZE; r++) {
       for (let c = 0; c <= GRID_SIZE - 2; c++) {
         const i = r * GRID_SIZE + c;
@@ -73,7 +66,6 @@ function pickRandomEnemyTiles(indices, maxTiles = 5, cluster = true) {
         if (block.every(idx => indices.includes(idx))) pairs.push(block);
       }
     }
-
     for (let c = 0; c < GRID_SIZE; c++) {
       for (let r = 0; r <= GRID_SIZE - 2; r++) {
         const i = r * GRID_SIZE + c;
@@ -81,24 +73,15 @@ function pickRandomEnemyTiles(indices, maxTiles = 5, cluster = true) {
         if (block.every(idx => indices.includes(idx))) pairs.push(block);
       }
     }
-
-    shuffle(horizontal).forEach(b => {
-      if (result.length < maxTiles) tryAdd(b);
-    });
-    shuffle(vertical).forEach(b => {
-      if (result.length < maxTiles) tryAdd(b);
-    });
-    shuffle(pairs).forEach(b => {
-      if (result.length < maxTiles) tryAdd(b);
-    });
+    shuffle(horizontal).forEach(b => { if (result.length < maxTiles) tryAdd(b); });
+    shuffle(vertical).forEach(b => { if (result.length < maxTiles) tryAdd(b); });
+    shuffle(pairs).forEach(b => { if (result.length < maxTiles) tryAdd(b); });
   }
-
   const remaining = shuffle(indices.filter(i => !used.has(i)));
   for (let i = 0; i < remaining.length && result.length < maxTiles; i++) {
     result.push(remaining[i]);
     used.add(remaining[i]);
   }
-
   return result.slice(0, maxTiles);
 }
 
@@ -129,28 +112,18 @@ export default function App() {
   const animationRef = useRef(null);
   const pendingBalanceRef = useRef(initialBalance);
 
-  useEffect(() => {
-    return () => cancelAnimationFrame(animationRef.current);
-  }, []);
-
-  useEffect(() => {
-    if (token) localStorage.setItem("token", token);
-  }, [token]);
-
+  useEffect(() => () => cancelAnimationFrame(animationRef.current), []);
+  useEffect(() => { if (token) localStorage.setItem("token", token); }, [token]);
   useEffect(() => {
     if (!token) return;
-    axios
-      .get("http://localhost:4000/auth/validate", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(() => setValidated(true))
-      .catch(() => {
-        localStorage.removeItem("token");
-        setToken("");
-        setValidated(false);
-      });
+    axios.get("http://localhost:4000/auth/validate", {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(() => setValidated(true)).catch(() => {
+      localStorage.removeItem("token");
+      setToken("");
+      setValidated(false);
+    });
   }, [token]);
-
   useEffect(() => {
     setTimeout(() => {
       if (gridWrapperRef.current) {
@@ -167,7 +140,6 @@ export default function App() {
   const brushSize = sizeOptions[sizeIdx];
   const selectedCount = selected.filter(Boolean).length;
   const canFire = selectedCount > 0 && selectedCount < 100;
-
   const winChance = mode === "offense" ? selectedCount / 100 : 1 - selectedCount / 100;
   const predictedMultiplier = winChance > 0 ? +(0.99 / winChance).toFixed(2) : 0;
   const winPercentage = (winChance * 100).toFixed(1);
@@ -186,30 +158,23 @@ export default function App() {
 
   const handleFire = async () => {
     if (!canFire || bet <= 0 || bet > pendingBalanceRef.current) return;
-
     const targetNumber = selectedCount;
     const gameMode = mode === "offense" ? "under" : "over";
-
     try {
       const res = await axios.post("http://localhost:4000/dice/roll", {
         mode: gameMode,
         amount: bet,
         targetNumber,
-      }, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      }, { headers: { Authorization: `Bearer ${token}` } });
 
       const { win, profit = 0, payoutMultiplier = 0 } = res.data;
-
       const start = pendingBalanceRef.current;
       const end = +(start + profit).toFixed(2);
       pendingBalanceRef.current = end;
       const startTime = performance.now();
       const duration = 800;
       document.body.classList.add("balance-flash");
-
       if (animationRef.current) cancelAnimationFrame(animationRef.current);
-
       const animate = currentTime => {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
@@ -227,7 +192,6 @@ export default function App() {
       setMultiplier(payoutMultiplier);
       setWinVisible(true);
       setIsLoss(!win);
-
       if (win) {
         winSound.pause();
         winSound.currentTime = 0;
@@ -236,7 +200,6 @@ export default function App() {
 
       const selectedIdx = selected.map((v, i) => v ? i : null).filter(Boolean);
       const unselected = selected.map((v, i) => !v ? i : null).filter(Boolean);
-
       if (mode === "offense") {
         setHitTiles(win ? [selectedIdx[Math.floor(Math.random() * selectedIdx.length)]] : []);
         setEnemyShipTiles(pickRandomEnemyTiles(unselected, 5, true));
@@ -250,7 +213,6 @@ export default function App() {
   };
 
   const handleAnchor = () => alert("Anchor set!");
-
   if (!token || !validated) return <LoginScreen onLogin={setToken} />;
   if (!selectedMode) return <ModeSelectScreen isPortrait={isPortrait} onSelectMode={setSelectedMode} />;
 
@@ -260,59 +222,32 @@ export default function App() {
         <Link to="/dashboard" style={floatingLinkStyle}>Dashboard</Link>
       )}
       {location.pathname === "/dashboard" && (
-        <Link to="/" style={{ ...floatingLinkStyle, backgroundColor: "#1a1a1a" }}>\ud83d\udd19 Back to Game</Link>
+        <Link to="/" style={{ ...floatingLinkStyle, backgroundColor: "#1a1a1a" }}>🔙 Back to Game</Link>
       )}
 
       <div ref={gridWrapperRef} className="grid-wrapper" style={{ position: "relative", flex: "1 1 auto" }}>
         <div style={{ display: "none" }}>
           <FulfillmentSlider value={selectedCount} total={100} mode={mode} />
         </div>
+        <TileGrid visible={mode === "defense"} mode="defense" brushSize={brushSize} orientation={orientation} selected={defenseSelected} setSelected={setDefenseSelected} imgSrc="/5.png" enemyMissiles={enemyMissiles} enemyHits={enemyHits} win={winVisible && !isLoss} />
+        <TileGrid visible={mode === "offense"} mode="offense" brushSize={brushSize} orientation={orientation} selected={offenseSelected} setSelected={setOffenseSelected} imgSrc="/6.png" enemyTiles={enemyShipTiles} hitTiles={hitTiles} win={winVisible && !isLoss} />
+      </div>
 
-        <TileGrid
-          visible={mode === "defense"}
-          mode="defense"
-          brushSize={brushSize}
-          orientation={orientation}
-          selected={defenseSelected}
-          setSelected={setDefenseSelected}
-          imgSrc="/5.png"
-          enemyMissiles={enemyMissiles}
-          enemyHits={enemyHits}
-          win={winVisible && !isLoss}
-        />
-        <TileGrid
-          visible={mode === "offense"}
-          mode="offense"
-          brushSize={brushSize}
-          orientation={orientation}
-          selected={offenseSelected}
-          setSelected={setOffenseSelected}
-          imgSrc="/6.png"
-          enemyTiles={enemyShipTiles}
-          hitTiles={hitTiles}
-          win={winVisible && !isLoss}
-        />
-
-        {gridBounds && (
+      <div className="panel-wrapper">
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
           <WinOverlay
             visible={winVisible}
             balanceChange={winAmount}
             multiplier={multiplier}
-            gridBounds={gridBounds}
             isLoss={isLoss}
+            winPercentage={winPercentage}
+            predictedMultiplier={predictedMultiplier}
           />
-        )}
-      </div>
+        </div>
 
-      <div className="panel-wrapper">
         <div className="rotate-size-row">
           <div className="size-slider-container">
-            <SizeSlider
-              sizeOptions={sizeOptions}
-              value={sizeIdx}
-              setValue={setSizeIdx}
-              isOffense={mode === "offense"}
-            />
+            <SizeSlider sizeOptions={sizeOptions} value={sizeIdx} setValue={setSizeIdx} isOffense={mode === "offense"} />
           </div>
           <button
             onClick={() => setOrientation(orientation === "horizontal" ? "vertical" : "horizontal")}

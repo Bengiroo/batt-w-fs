@@ -1,33 +1,41 @@
 import React from "react";
 import "./WinOverlay.css";
 
-export default function WinOverlay({ visible, balanceChange, multiplier, gridBounds, fading, isLoss }) {
-    if (!visible || !gridBounds) return null;
-
+export default function WinOverlay({
+    visible,
+    balanceChange,
+    multiplier,
+    isLoss,
+    winPercentage,
+    predictedMultiplier,
+}) {
     const isWin = !isLoss;
 
-    const style = {
-        position: "fixed",
-        left: "50%",
-        top: "50%",
-        transform: "translate(-50%, -50%)",
-        width: gridBounds.width * 0.30,
-        height: gridBounds.height * 0.18,
-        zIndex: 9999,
-    };
-
     return (
-        <div className={`win-overlay ${fading ? "fade" : ""}`} style={style}>
+        <div className="win-overlay-panel">
             <div className="win-content">
-                {isWin ? (
-                    <>
-                        <div className="win-title">WIN</div>
-                        <div className="win-amount">${balanceChange.toFixed(2)}</div>
-                        <div className="win-multiplier">{multiplier.toFixed(2)}x</div>
-                    </>
+                {visible ? (
+                    isWin ? (
+                        <>
+                            <div className="win-title">WIN</div>
+                            <div className="win-amount">${balanceChange.toFixed(2)}</div>
+                            <div className="win-multiplier">{multiplier.toFixed(2)}x</div>
+                        </>
+                    ) : (
+                        <div className="loss-x">❌</div>
+                    )
                 ) : (
-                    <div className="loss-x">❌</div>
+                    <>
+                        <div className="win-title">&nbsp;</div>
+                        <div className="win-amount">$000.00</div>
+                        <div className="win-multiplier">0.00x</div>
+                    </>
                 )}
+
+                <div className="stats-line">
+                    <span>🎯 {winPercentage}% chance</span>
+                    <span>💥 {predictedMultiplier}x</span>
+                </div>
             </div>
         </div>
     );

@@ -166,24 +166,7 @@ export default function PanelControls({
 
 
       {/* === Stats Area === */}
-      <div
-        style={{
-          marginTop: "auto",
-          width: "90%",
-          background: "#001122",
-          border: "2px solid cyan",
-          borderRadius: 10,
-          padding: "10px 14px",
-          color: "#0ff",
-          fontFamily: "monospace",
-          fontSize: 14,
-          textAlign: "center",
-          boxShadow: "0 0 8px #0ff",
-        }}
-      >
-        <div>🎯 <strong>Chance to Win:</strong> {winPercentage}%</div>
-        <div>💥 <strong>Multiplier:</strong> {predictedMultiplier}x</div>
-      </div>
+
     </div>
   );
 }
